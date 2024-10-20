@@ -14,5 +14,5 @@ You shouldn't have to worry about freeing resources since this is taken care of 
 
 ## Examples
 
-[examples/tutorial.nim] is based off of tutorial code available on [VideoLAN's Wiki](https://wiki.videolan.org/LibVLC_Tutorial/).
+[examples/tutorial.nim](examples/tutorial.nim) is based off of tutorial code available on [VideoLAN's Wiki](https://wiki.videolan.org/LibVLC_Tutorial/).
 
