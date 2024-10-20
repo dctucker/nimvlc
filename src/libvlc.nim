@@ -93,12 +93,9 @@ type
   enum_libvlc_media_slave_type_t_520094264* {.size: sizeof(cuint).} = enum
     libvlc_media_slave_type_subtitle = 0, libvlc_media_slave_type_audio = 1
 type
-  enum_libvlc_video_marquee_option_t_520094304* {.size: sizeof(cuint).} = enum
-    libvlc_marquee_Enable = 0, libvlc_marquee_Text = 1,
-    libvlc_marquee_Color = 2, libvlc_marquee_Opacity = 3,
-    libvlc_marquee_Position = 4, libvlc_marquee_Refresh = 5,
-    libvlc_marquee_Size = 6, libvlc_marquee_Timeout = 7, libvlc_marquee_X = 8,
-    libvlc_marquee_Y = 9
+  enum_libvlc_video_marquee_option_t* {.pure, size: sizeof(cuint).} = enum
+    Enable = 0, Text = 1, Color = 2, Opacity = 3, Position = 4,
+    Refresh = 5, Size = 6, Timeout = 7, X = 8, Y = 9
 type
   enum_libvlc_navigate_mode_t_520094308* {.size: sizeof(cuint).} = enum
     libvlc_navigate_activate = 0, libvlc_navigate_up = 1,
@@ -456,7 +453,7 @@ type
   uintptr_t_520094177 = culong ## Generated based on /usr/include/stdint.h:79:27
   libvlc_log_cb_520094179 = proc (a0: pointer; a1: cint; a2: ptr libvlc_log_t_520094176;
                                   a3: cstring): void {.cdecl, varargs.} ## Generated based on /home/casey/Development/nimvlc/contrib/futhark/vlc/libvlc.h:447:16
-  FILE_520094181 = struct_IO_FILE_520094405 ## Generated based on /usr/include/bits/types/FILE.h:7:25
+  FILE = struct_IO_FILE ## Generated based on /usr/include/bits/types/FILE.h:7:25
   struct_libvlc_module_description_t_520094183 {.pure, inheritable, bycopy.} = object
     psz_name*: cstring       ## Generated based on /home/casey/Development/nimvlc/contrib/futhark/vlc/libvlc.h:500:16
     psz_shortname*: cstring
@@ -592,7 +589,7 @@ type
     psz_device*: cstring
     psz_description*: cstring
   libvlc_audio_output_device_t_520094302 = struct_libvlc_audio_output_device_t_520094301 ## Generated based on /home/casey/Development/nimvlc/contrib/futhark/vlc/libvlc_media_player.h:104:3
-  libvlc_video_marquee_option_t_520094306 = enum_libvlc_video_marquee_option_t_520094305 ## Generated based on /home/casey/Development/nimvlc/contrib/futhark/vlc/libvlc_media_player.h:120:3
+  libvlc_video_marquee_option_t = enum_libvlc_video_marquee_option_t ## Generated based on /home/casey/Development/nimvlc/contrib/futhark/vlc/libvlc_media_player.h:120:3
   libvlc_navigate_mode_t_520094310 = enum_libvlc_navigate_mode_t_520094309 ## Generated based on /home/casey/Development/nimvlc/contrib/futhark/vlc/libvlc_media_player.h:133:3
   libvlc_position_t_520094314 = enum_libvlc_position_t_520094313 ## Generated based on /home/casey/Development/nimvlc/contrib/futhark/vlc/libvlc_media_player.h:149:3
   libvlc_teletext_key_t_520094318 = enum_libvlc_teletext_key_t_520094317 ## Generated based on /home/casey/Development/nimvlc/contrib/futhark/vlc/libvlc_media_player.h:161:3
@@ -662,7 +659,7 @@ type
     psz_header*: cstring
     psz_message*: cstring
   libvlc_log_message_t_520094402 = struct_libvlc_log_message_t_520094401 ## Generated based on /home/casey/Development/nimvlc/contrib/futhark/vlc/deprecated.h:356:3
-  struct_IO_FILE_520094404 {.pure, inheritable, bycopy.} = object
+  struct_IO_FILE {.pure, inheritable, bycopy.} = object
     internal_flags*: cint    ## Generated based on /usr/include/bits/types/struct_FILE.h:49:8
     internal_IO_read_ptr*: cstring
     internal_IO_read_end*: cstring
@@ -676,7 +673,7 @@ type
     internal_IO_backup_base*: cstring
     internal_IO_save_end*: cstring
     internal_markers*: ptr struct_IO_marker
-    internal_chain*: ptr struct_IO_FILE_520094405
+    internal_chain*: ptr struct_IO_FILE
     internal_fileno*: cint
     internal_flags2*: cint
     internal_old_offset*: compiler_off_t_520094412
@@ -687,9 +684,9 @@ type
     internal_offset*: compiler_off64_t_520094416
     internal_codecvt*: ptr struct_IO_codecvt
     internal_wide_data*: ptr struct_IO_wide_data
-    internal_freeres_list*: ptr struct_IO_FILE_520094405
+    internal_freeres_list*: ptr struct_IO_FILE
     internal_freeres_buf*: pointer
-    internal_prevchain*: ptr ptr struct_IO_FILE_520094405
+    internal_prevchain*: ptr ptr struct_IO_FILE
     internal_mode*: cint
     internal_unused2*: array[20'i64, cschar]
   compiler_ssize_t = clong ## Generated based on /usr/include/bits/types.h:194:27
@@ -765,13 +762,6 @@ type
     libvlc_state_t
    else:
     libvlc_state_t_520094203)
-  FILE_520094182 = (when declared(FILE):
-    when ownSizeof(FILE) != ownSizeof(FILE_520094181):
-      static :
-        warning("Declaration of " & "FILE" & " exists but with different size")
-    FILE
-   else:
-    FILE_520094181)
   libvlc_video_viewpoint_t_520094232 = (when declared(libvlc_video_viewpoint_t):
     when ownSizeof(libvlc_video_viewpoint_t) !=
         ownSizeof(libvlc_video_viewpoint_t_520094231):
@@ -1019,16 +1009,6 @@ type
     libvlc_audio_resume_cb
    else:
     libvlc_audio_resume_cb_520094336)
-  libvlc_video_marquee_option_t_520094307 = (when declared(
-      libvlc_video_marquee_option_t):
-    when ownSizeof(libvlc_video_marquee_option_t) !=
-        ownSizeof(libvlc_video_marquee_option_t_520094306):
-      static :
-        warning("Declaration of " & "libvlc_video_marquee_option_t" &
-            " exists but with different size")
-    libvlc_video_marquee_option_t
-   else:
-    libvlc_video_marquee_option_t_520094306)
   enum_libvlc_dialog_question_type_520094391 = (when declared(
       enum_libvlc_dialog_question_type):
     when ownSizeof(enum_libvlc_dialog_question_type) !=
@@ -1173,14 +1153,6 @@ type
     libvlc_media_discoverer_description_t
    else:
     libvlc_media_discoverer_description_t_520094380)
-  struct_IO_FILE_520094405 = (when declared(struct_IO_FILE):
-    when ownSizeof(struct_IO_FILE) != ownSizeof(struct_IO_FILE_520094404):
-      static :
-        warning("Declaration of " & "struct_IO_FILE" &
-            " exists but with different size")
-    struct_IO_FILE
-   else:
-    struct_IO_FILE_520094404)
   libvlc_audio_output_t_520094299 = (when declared(libvlc_audio_output_t):
     when ownSizeof(libvlc_audio_output_t) != ownSizeof(libvlc_audio_output_t_520094298):
       static :
@@ -1384,16 +1356,6 @@ type
     libvlc_event_type_t
    else:
     libvlc_event_type_t_520094167)
-  enum_libvlc_video_marquee_option_t_520094305 = (when declared(
-      enum_libvlc_video_marquee_option_t):
-    when ownSizeof(enum_libvlc_video_marquee_option_t) !=
-        ownSizeof(enum_libvlc_video_marquee_option_t_520094304):
-      static :
-        warning("Declaration of " & "enum_libvlc_video_marquee_option_t" &
-            " exists but with different size")
-    enum_libvlc_video_marquee_option_t
-   else:
-    enum_libvlc_video_marquee_option_t_520094304)
   libvlc_teletext_key_t_520094319 = (when declared(libvlc_teletext_key_t):
     when ownSizeof(libvlc_teletext_key_t) != ownSizeof(libvlc_teletext_key_t_520094318):
       static :
@@ -1756,12 +1718,6 @@ else:
   static :
     hint("Declaration of " & "libvlc_state_t" &
         " already exists, not redeclaring")
-when not declared(FILE):
-  type
-    FILE* = FILE_520094181
-else:
-  static :
-    hint("Declaration of " & "FILE" & " already exists, not redeclaring")
 when not declared(libvlc_video_viewpoint_t):
   type
     libvlc_video_viewpoint_t* = libvlc_video_viewpoint_t_520094231
@@ -1958,13 +1914,6 @@ else:
   static :
     hint("Declaration of " & "libvlc_audio_resume_cb" &
         " already exists, not redeclaring")
-when not declared(libvlc_video_marquee_option_t):
-  type
-    libvlc_video_marquee_option_t* = libvlc_video_marquee_option_t_520094306
-else:
-  static :
-    hint("Declaration of " & "libvlc_video_marquee_option_t" &
-        " already exists, not redeclaring")
 when not declared(enum_libvlc_dialog_question_type):
   type
     enum_libvlc_dialog_question_type* = enum_libvlc_dialog_question_type_520094390
@@ -2034,13 +1983,6 @@ else:
   static :
     hint("Declaration of " & "struct_libvlc_media_track_info_t" &
         " already exists, not redeclaring")
-when not declared(libvlc_media_t):
-  type
-    libvlc_media_t* = struct_libvlc_media_t
-else:
-  static :
-    hint("Declaration of " & "libvlc_media_t" &
-        " already exists, not redeclaring")
 when not declared(libvlc_callback_t):
   type
     libvlc_callback_t* = libvlc_callback_t_520094169
@@ -2082,13 +2024,6 @@ when not declared(libvlc_media_discoverer_description_t):
 else:
   static :
     hint("Declaration of " & "libvlc_media_discoverer_description_t" &
-        " already exists, not redeclaring")
-when not declared(struct_IO_FILE):
-  type
-    struct_IO_FILE* = struct_IO_FILE_520094404
-else:
-  static :
-    hint("Declaration of " & "struct_IO_FILE" &
         " already exists, not redeclaring")
 when not declared(libvlc_audio_output_t):
   type
@@ -2249,13 +2184,6 @@ when not declared(libvlc_event_type_t):
 else:
   static :
     hint("Declaration of " & "libvlc_event_type_t" &
-        " already exists, not redeclaring")
-when not declared(enum_libvlc_video_marquee_option_t):
-  type
-    enum_libvlc_video_marquee_option_t* = enum_libvlc_video_marquee_option_t_520094304
-else:
-  static :
-    hint("Declaration of " & "enum_libvlc_video_marquee_option_t" &
         " already exists, not redeclaring")
 when not declared(libvlc_teletext_key_t):
   type
@@ -2812,7 +2740,7 @@ else:
         " already exists, not redeclaring")
 when not declared(libvlc_log_set_file):
   proc libvlc_log_set_file*(p_instance: ptr libvlc_instance_t;
-                            stream: ptr FILE_520094182): void {.cdecl,
+                            stream: ptr FILE): void {.cdecl,
       importc: "libvlc_log_set_file".}
 else:
   static :

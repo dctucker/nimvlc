@@ -12,3 +12,6 @@ requires "nim >= 1.6.6" # or lower maybe
 
 task examples, "examples":
     exec "nim c examples/tutorial.nim"
+
+task futhark, "futhark":
+    exec "nim c -d:useFuthark -d:futharkRebuild src/nimvlc.nim"
