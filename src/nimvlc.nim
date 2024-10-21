@@ -72,6 +72,9 @@ when defined(useFuthark):
 else:
     {.passL: "-lvlc"}
     include "libvlc.nim"
+#
+
+# libvlc instance
 
 type Instance = distinct ptr instance_t
 converter toBase*(i: Instance): ptr instance_t = cast[ptr instance_t](i)
@@ -83,6 +86,8 @@ proc newInstance*(args: varargs[string]): Instance =
         let a = addr args[0]
         p = cast[ptr cstring](a)
     result = Instance( instance_new( args.len().cint, p ) )
+
+type EventManager = ptr event_manager_t
 
 # renderer discoverer
 
@@ -96,8 +101,6 @@ proc name*(ri: RendererItem): string = return $ri.renderer_item_name()
 proc `type`*(ri: RendererItem): string = return $ri.renderer_item_type()
 proc iconURI*(ri: RendererItem): string = return $ri.renderer_item_icon_uri()
 proc flags*(ri: RendererItem): int = return ri.renderer_item_flags()
-
-type EventManager = ptr event_manager_t
 
 type RendererCan {.size: sizeof(cint).} = enum
     Audio = LIBVLC_RENDERER_CAN_AUDIO
@@ -139,14 +142,10 @@ type
     MediaCloseCb* = proc (opaque: pointer): void {.cdecl.}
 converter toBase*(m: Media): ptr media_t = m.impl
 proc `=destroy`(m: Media) = m.impl.media_release()
-proc newMediaLocation*(i: var Instance, arg: string): Media =
-    result.impl = i.media_new_location(arg)
-proc newMediaPath*(i: var Instance, arg: string): Media =
-    result.impl = i.media_new_path(arg)
-proc newMediaFd*(i: var Instance, arg: cint): Media =
-    result.impl = i.media_new_fd(arg)
-proc newMediaCallbacks*(i: var Instance, open: MediaOpenCb,
-        read: MediaReadCb, seek: MediaSeekCb,
+proc newMediaLocation*(i: var Instance, arg: string): Media = result.impl = i.media_new_location(arg)
+proc newMediaPath*(i: var Instance, arg: string): Media = result.impl = i.media_new_path(arg)
+proc newMediaFd*(i: var Instance, arg: cint): Media = result.impl = i.media_new_fd(arg)
+proc newMediaCallbacks*(i: var Instance, open: MediaOpenCb, read: MediaReadCb, seek: MediaSeekCb,
         close: MediaCloseCb, opaque: pointer): Media =
     result.impl = i.media_new_callbacks(open, read, seek, close, opaque)
 
@@ -177,9 +176,18 @@ proc pause*(mp: var MediaPlayer) = mp.media_player_pause()
 proc stop*(mp: var MediaPlayer) = mp.media_player_stop()
 proc setRenderer(mp: var MediaPlayer, item: RendererItem): int = mp.media_player_set_renderer(item)
 
-proc videoSetCallbacks(mp: var MediaPlayer, lock: videoLockCb, unlock: videoUnlockCb, display: videoDisplayCb, opaque: pointer) = mp.video_set_callbacks(lock, unlock, display, opaque)
-proc videoSetFormat*(mp: var MediaPlayer, chroma: string; width, height, pitch: uint) = mp.video_set_format(chroma, width.cuint, height.cuint, pitch.cuint)
-proc videoSetFormatCallbacks*(mp: var MediaPlayer, setup: videoFormatCb, cleanup: videoCleanupCb) = mp.video_set_format_callbacks(setup, cleanup)
+proc setCallbacks(mp: var MediaPlayer,
+         lock: proc(opaque: pointer, planes: ptr pointer): pointer {.cdecl.},
+         unlock: proc(opaque: pointer; picture: pointer; planes: ptr pointer) {.cdecl.},
+         display: proc(opaque: pointer; picture: pointer): void {.cdecl.},
+         opaque: pointer) =
+    mp.video_set_callbacks(lock, unlock, display, opaque)
+
+proc setFormat*(mp: var MediaPlayer, chroma: string; width, height, pitch: uint) = mp.video_set_format(chroma, width.cuint, height.cuint, pitch.cuint)
+proc setFormatCallbacks*(mp: var MediaPlayer,
+        setup: proc(opaque: ptr pointer; chroma: cstring; width: ptr cuint; height: ptr cuint; pitches: ptr cuint; lines: ptr cuint): cuint {.cdecl.},
+        cleanup: proc(opaque: pointer): void {.cdecl.}) =
+    mp.video_set_format_callbacks(setup, cleanup)
 
 proc setNsObject*(mp: var MediaPlayer, handle: pointer) = mp.media_player_set_nsobject(handle)
 proc getNsObject*(mp: var MediaPlayer): pointer = mp.media_player_get_nsobject()
@@ -190,10 +198,22 @@ proc getHwnd*(mp: var MediaPlayer): pointer = mp.media_player_get_hwnd()
 proc setAndroidContext*(mp: MediaPlayer; awindow_handler: pointer) = mp.media_player_set_android_context(awindow_handler)
 proc setEvasObject*(mp: MediaPlayer; evas_object: pointer): int = mp.media_player_set_evas_object(evas_object)
 
-proc audioSetCallbacks*(mp: MediaPlayer; play: audio_play_cb; pause: audio_pause_cb; resume: audio_resume_cb; flush: audio_flush_cb; drain: audio_drain_cb; opaque: pointer) = mp.audio_set_callbacks(play, pause, resume, flush, drain, opaque)
-proc audioSetVolumeCallback*(mp: MediaPlayer; set_volume: audio_set_volume_cb) = mp.audio_set_volume_callback(set_volume)
-proc audioSetFormatCallbacks*(mp: MediaPlayer; setup: audio_setup_cb; cleanup: audio_cleanup_cb) = mp.audio_set_format_callbacks(setup, cleanup)
-proc audioSetFormat*(mp: MediaPlayer; format: string; rate: uint; channels: uint) = mp.audio_set_format(format, rate, channels)
+proc setCallbacks*(mp: MediaPlayer;
+        play: proc(data: pointer; samples: pointer; count: cuint; pts: int64): void {.cdecl.},
+        pause: proc(data: pointer; pts: int64): void {.cdecl.},
+        resume: proc(data: pointer; pts: int64): void {.cdecl.},
+        flush: proc(data: pointer; pts: int64): void {.cdecl.},
+        drain: proc(data: pointer): void {.cdecl.},
+        opaque: pointer) =
+    mp.audio_set_callbacks(play, pause, resume, flush, drain, opaque)
+proc setVolumeCallback*(mp: MediaPlayer;
+        set_volume: proc(data: pointer; volume: cfloat; mute: bool): void {.cdecl.}) =
+    mp.audio_set_volume_callback(set_volume)
+proc setFormatCallbacks*(mp: MediaPlayer;
+        setup: proc(data: ptr pointer; format: cstring; rate: ptr cuint; channels: ptr cuint): cint {.cdecl.},
+        cleanup: proc(data: pointer): void {.cdecl.}) =
+    mp.audio_set_format_callbacks(setup, cleanup)
+proc setFormat*(mp: MediaPlayer; format: string; rate: uint; channels: uint) = mp.audio_set_format(format.cstring, rate.cuint, channels.cuint)
 
 proc getLength*(mp: MediaPlayer): time_t = mp.media_player_get_length()
 proc getTime*(mp: MediaPlayer): time_t = mp.media_player_get_time()
