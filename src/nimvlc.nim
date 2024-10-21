@@ -176,9 +176,11 @@ proc setPause(mp: var MediaPlayer, doPause: bool) = mp.media_player_set_pause(if
 proc pause*(mp: var MediaPlayer) = mp.media_player_pause()
 proc stop*(mp: var MediaPlayer) = mp.media_player_stop()
 proc setRenderer(mp: var MediaPlayer, item: RendererItem): int = mp.media_player_set_renderer(item)
-proc setCallbacks(mp: var MediaPlayer, lock: videoLockCb, unlock: videoUnlockCb, display: videoDisplayCb, opaque: pointer) = mp.video_set_callbacks(lock, unlock, display, opaque)
-proc setFormat*(mp: var MediaPlayer, chroma: string; width, height, pitch: uint) = mp.video_set_format(chroma, width.cuint, height.cuint, pitch.cuint)
-proc setFormatCallbacks*(mp: var MediaPlayer, setup: videoFormatCb, cleanup: videoCleanupCb) = mp.video_set_format_callbacks(setup, cleanup)
+
+proc videoSetCallbacks(mp: var MediaPlayer, lock: videoLockCb, unlock: videoUnlockCb, display: videoDisplayCb, opaque: pointer) = mp.video_set_callbacks(lock, unlock, display, opaque)
+proc videoSetFormat*(mp: var MediaPlayer, chroma: string; width, height, pitch: uint) = mp.video_set_format(chroma, width.cuint, height.cuint, pitch.cuint)
+proc videoSetFormatCallbacks*(mp: var MediaPlayer, setup: videoFormatCb, cleanup: videoCleanupCb) = mp.video_set_format_callbacks(setup, cleanup)
+
 proc setNsObject*(mp: var MediaPlayer, handle: pointer) = mp.media_player_set_nsobject(handle)
 proc getNsObject*(mp: var MediaPlayer): pointer = mp.media_player_get_nsobject()
 proc setXwindow*(mp: var MediaPlayer, handle: uint32) = mp.media_player_set_xwindow(handle)
@@ -187,6 +189,12 @@ proc setHwnd*(mp: var MediaPlayer, handle: pointer) = mp.media_player_set_hwnd(h
 proc getHwnd*(mp: var MediaPlayer): pointer = mp.media_player_get_hwnd()
 proc setAndroidContext*(mp: MediaPlayer; awindow_handler: pointer) = mp.media_player_set_android_context(awindow_handler)
 proc setEvasObject*(mp: MediaPlayer; evas_object: pointer): int = mp.media_player_set_evas_object(evas_object)
+
+proc audioSetCallbacks*(mp: MediaPlayer; play: audio_play_cb; pause: audio_pause_cb; resume: audio_resume_cb; flush: audio_flush_cb; drain: audio_drain_cb; opaque: pointer) = mp.audio_set_callbacks(play, pause, resume, flush, drain, opaque)
+proc audioSetVolumeCallback*(mp: MediaPlayer; set_volume: audio_set_volume_cb) = mp.audio_set_volume_callback(set_volume)
+proc audioSetFormatCallbacks*(mp: MediaPlayer; setup: audio_setup_cb; cleanup: audio_cleanup_cb) = mp.audio_set_format_callbacks(setup, cleanup)
+proc audioSetFormat*(mp: MediaPlayer; format: string; rate: uint; channels: uint) = mp.audio_set_format(format, rate, channels)
+
 proc getLength*(mp: MediaPlayer): time_t = mp.media_player_get_length()
 proc getTime*(mp: MediaPlayer): time_t = mp.media_player_get_time()
 proc setTime*(mp: MediaPlayer; time: time_t) = mp.media_player_set_time(time)
