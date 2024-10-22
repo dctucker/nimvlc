@@ -13,9 +13,15 @@ when defined(useFuthark):
             elif rune notin Delimiters:
                 result.add rune
             prev = rune
+
+    func sysIncludePathname(): string =
+        if sysIncludePath == "":
+            return getClangIncludePath()
+        return sysIncludePath
+
     importc:
         path vlcIncludePath
-        sysPath sysIncludePath
+        sysPath sysIncludePathname()
         "vlc/libvlc.h"
         "vlc/libvlc_renderer_discoverer.h"
         "vlc/libvlc_media.h"

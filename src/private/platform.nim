@@ -4,8 +4,10 @@ const vlcLibPath {.strdefine.}: string = when defined(macosx):
 else:
     getEnv("VLCLIBDIR", "/usr/lib")
 
-const vlcIncludePath {.strdefine.}: string = "./include"
-const sysIncludePath {.strdefine.}: string = "/usr/include"
+when defined(useFuthark):
+    const vlcIncludePath {.strdefine.}: string = "./include"
+    const sysIncludePath {.strdefine.}: string = ""
+
 proc futharkCompilerArgs(pwd: string): string =
     when defined(macosx):
         let sdk = "/Library/Developer/CommandLineTools/SDKs/MacOSX14.sdk"
