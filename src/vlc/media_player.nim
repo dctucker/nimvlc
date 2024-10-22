@@ -8,7 +8,7 @@ type
 type MediaPlayer = object
     impl: ptr media_player_t
 converter toBase*(mp: MediaPlayer): ptr media_player_t = mp.impl
-proc `=destroy`(mp: MediaPlayer) = mp.impl.media_player_release()
+proc `=destroy`(mp: var MediaPlayer) = mp.impl.media_player_release()
 proc newMediaPlayer*(m: Media): MediaPlayer = MediaPlayer(impl: m.media_player_new_from_media())
 proc newMediaPlayer*(inst: Instance): MediaPlayer = MediaPlayer(impl: inst.media_player_new())
 proc retain*(mp: MediaPlayer) = mp.media_player_retain() # copy?

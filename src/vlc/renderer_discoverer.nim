@@ -10,7 +10,7 @@ converter toInt*(rf: RendererFlags): int =
     for f in rf:
         result += f.ord
 converter fromInt*(x:int): RendererFlags = cast[RendererFlags](x)
-proc `=destroy`(ri: RendererItem) =
+proc `=destroy`(ri: var RendererItem) =
     ri.impl.renderer_item_release()
 proc hold*(ri: RendererItem): RendererItem = RendererItem(impl: ri.renderer_item_hold())
 proc name*(ri: RendererItem): string = return $ri.renderer_item_name()
@@ -26,7 +26,7 @@ type RdDescriptionList = object
 iterator items*(list: RdDescriptionList): ptr RdDescription =
     for i in 0..list.size:
         yield list.services[i]
-proc `=destroy`(list: RdDescriptionList) =
+proc `=destroy`(list: var RdDescriptionList) =
     var pp_services = cast[ptr ptr rd_description_t](addr list.services)
     pp_services.renderer_discoverer_list_release(list.size)
 proc len*(list: RdDescriptionList): csize_t = return list.size
@@ -34,7 +34,7 @@ proc len*(list: RdDescriptionList): csize_t = return list.size
 type RendererDiscoverer = object
     impl: ptr renderer_discoverer_t
 converter toBase*(rd: RendererDiscoverer): ptr renderer_discoverer_t = rd.impl
-proc `=destroy`(rd: RendererDiscoverer) = rd.impl.renderer_discoverer_release()
+proc `=destroy`(rd: var RendererDiscoverer) = rd.impl.renderer_discoverer_release()
 proc newRendererDiscoverer*(inst: Instance, name: cstring): RendererDiscoverer =
     result.impl = inst.renderer_discoverer_new(name)
 proc start*(rd: RendererDiscoverer): int = return rd.renderer_discoverer_start()

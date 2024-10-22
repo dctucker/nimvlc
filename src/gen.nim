@@ -1,3 +1,5 @@
+include "private/platform.nim"
+
 when defined(useFuthark):
     import futhark
     import std/[strutils,strformat,unicode,json]
@@ -12,7 +14,8 @@ when defined(useFuthark):
                 result.add rune
             prev = rune
     importc:
-        path "./include"
+        path vlcIncludePath
+        sysPath sysIncludePath
         "vlc/libvlc.h"
         "vlc/libvlc_renderer_discoverer.h"
         "vlc/libvlc_media.h"
@@ -25,7 +28,7 @@ when defined(useFuthark):
         "vlc/libvlc_dialog.h"
         "vlc/libvlc_vlm.h"
         "vlc/deprecated.h"
-        outputPath "src/libvlc.nim"
+        outputPath "src/libvlc-new.nim"
         renameCallback proc(name: string, kind: string, partof = ""): string =
             result = name
             case kind:

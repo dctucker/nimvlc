@@ -1,18 +1,29 @@
-{.passL: "-lvlc"}
 import libvlc
+include "private/platform.nim"
+
+{.passL: "-lvlc"}
+when defined(macosx):
+    {.passL: "-L" & vlcLibPath.}
+    {.passL: "-rpath " & vlcLibPath.}
 
 # libvlc instance
 
-type Instance = distinct ptr instance_t
-converter toBase*(i: Instance): ptr instance_t = cast[ptr instance_t](i)
-proc `=destroy`(i: Instance) = i.instance_release()
+type Instance = object
+    impl: ptr instance_t
+converter toBase*(i: Instance): ptr instance_t = i.impl
+proc `=destroy`(i: var Instance) = i.impl.instance_release()
 proc newInstance*(args: varargs[string]): Instance =
     var argc = args.len()
-    var p: ptr cstring = nil
+    var argv: ptr cstring = nil
     if argc > 0:
         let a = addr args[0]
-        p = cast[ptr cstring](a)
-    result = Instance( instance_new( args.len().cint, p ) )
+        argv = cast[ptr cstring](a)
+
+    setVlcPluginPath()
+    let p = instance_new( args.len().cint, argv )
+    if p == nil:
+        raise newException(ValueError, "libvlc_new returned null pointer")
+    result = Instance(impl: p)
 
 type EventManager = ptr event_manager_t
 
