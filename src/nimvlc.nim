@@ -1,6 +1,5 @@
 {.passL: "-lvlc"}
-include "libvlc.nim"
-
+import libvlc
 
 # libvlc instance
 
@@ -71,6 +70,7 @@ proc list*(inst: Instance): RdDescriptionList =
 # media
 
 type
+    Meta* {.pure.} = meta_t
     Media = object
         impl: ptr media_t
     MediaOpenCb*  = proc (opaque: pointer; datap: ptr pointer; sizep: ptr uint64): cint {.cdecl.}
@@ -82,8 +82,8 @@ proc `=destroy`(m: Media) = m.impl.media_release()
 proc newMediaLocation*(i: var Instance, arg: string): Media = result.impl = i.media_new_location(arg)
 proc newMediaPath*(i: var Instance, arg: string): Media = result.impl = i.media_new_path(arg)
 proc newMediaFd*(i: var Instance, arg: cint): Media = result.impl = i.media_new_fd(arg)
-proc newMediaCallbacks*(i: var Instance, open: MediaOpenCb, read: MediaReadCb, seek: MediaSeekCb,
-        close: MediaCloseCb, opaque: pointer): Media =
+proc newMediaCallbacks*(i: var Instance, open: MediaOpenCb, read: MediaReadCb,
+        seek: MediaSeekCb, close: MediaCloseCb, opaque: pointer): Media =
     result.impl = i.media_new_callbacks(open, read, seek, close, opaque)
 
 
@@ -102,18 +102,18 @@ converter toBase*(mp: MediaPlayer): ptr media_player_t = mp.impl
 proc `=destroy`(mp: MediaPlayer) = mp.impl.media_player_release()
 proc newMediaPlayer*(m: Media): MediaPlayer = MediaPlayer(impl: m.media_player_new_from_media())
 proc newMediaPlayer*(inst: Instance): MediaPlayer = MediaPlayer(impl: inst.media_player_new())
-proc retain(mp: MediaPlayer) = mp.media_player_retain()
-proc setMedia(mp: var MediaPlayer, m: Media) = mp.media_player_set_media(m)
-proc getMedia(mp: MediaPlayer): Media = return Media(impl: mp.media_player_get_media())
-proc eventManager(mp: MediaPlayer): EventManager = return mp.media_player_event_manager()
-proc isPlaying(mp: MediaPlayer): bool = return (mp.media_player_is_playing() == 1)
+proc retain*(mp: MediaPlayer) = mp.media_player_retain() # copy?
+proc `media=`*(mp: var MediaPlayer, m: Media) = mp.media_player_set_media(m)
+proc media*(mp: MediaPlayer): Media = return Media(impl: mp.media_player_get_media())
+proc eventManager*(mp: MediaPlayer): EventManager = return mp.media_player_event_manager()
+proc isPlaying*(mp: MediaPlayer): bool = return (mp.media_player_is_playing() == 1)
 proc play*(mp: var MediaPlayer): int {.discardable.} = return mp.media_player_play()
-proc setPause(mp: var MediaPlayer, doPause: bool) = mp.media_player_set_pause(if doPause: 1 else: 0)
+proc `pause=`*(mp: var MediaPlayer, doPause: bool) = mp.media_player_set_pause(if doPause: 1 else: 0)
 proc pause*(mp: var MediaPlayer) = mp.media_player_pause()
 proc stop*(mp: var MediaPlayer) = mp.media_player_stop()
-proc setRenderer(mp: var MediaPlayer, item: RendererItem): int = mp.media_player_set_renderer(item)
+proc `renderer=`*(mp: var MediaPlayer, item: RendererItem): int = mp.media_player_set_renderer(item)
 
-proc setCallbacks(mp: var MediaPlayer,
+proc setCallbacks*(mp: var MediaPlayer,
          lock: proc(opaque: pointer, planes: ptr pointer): pointer {.cdecl.},
          unlock: proc(opaque: pointer; picture: pointer; planes: ptr pointer) {.cdecl.},
          display: proc(opaque: pointer; picture: pointer): void {.cdecl.},
@@ -127,14 +127,14 @@ proc setFormatCallbacks*(mp: var MediaPlayer,
         cleanup: proc(opaque: pointer): void {.cdecl.}) =
     mp.video_set_format_callbacks(setup, cleanup)
 
-proc setNsObject*(mp: var MediaPlayer, handle: pointer) = mp.media_player_set_nsobject(handle)
-proc getNsObject*(mp: var MediaPlayer): pointer = mp.media_player_get_nsobject()
-proc setXwindow*(mp: var MediaPlayer, handle: uint32) = mp.media_player_set_xwindow(handle)
-proc getXwindow*(mp: var MediaPlayer): uint32 = mp.media_player_get_xwindow()
-proc setHwnd*(mp: var MediaPlayer, handle: pointer) = mp.media_player_set_hwnd(handle)
-proc getHwnd*(mp: var MediaPlayer): pointer = mp.media_player_get_hwnd()
-proc setAndroidContext*(mp: MediaPlayer; awindow_handler: pointer) = mp.media_player_set_android_context(awindow_handler)
-proc setEvasObject*(mp: MediaPlayer; evas_object: pointer): int = mp.media_player_set_evas_object(evas_object)
+proc `nsObject=`*(mp: var MediaPlayer, handle: pointer) = mp.media_player_set_nsobject(handle)
+proc nsObject*(mp: var MediaPlayer): pointer = mp.media_player_get_nsobject()
+proc `xwindow=`*(mp: var MediaPlayer, handle: uint32) = mp.media_player_set_xwindow(handle)
+proc xwindow*(mp: var MediaPlayer): uint32 = mp.media_player_get_xwindow()
+proc `hwnd=`*(mp: var MediaPlayer, handle: pointer) = mp.media_player_set_hwnd(handle)
+proc hwnd*(mp: var MediaPlayer): pointer = mp.media_player_get_hwnd()
+proc `androidContext=`*(mp: MediaPlayer; awindow_handler: pointer) = mp.media_player_set_android_context(awindow_handler)
+proc `evasObject=`*(mp: MediaPlayer; evas_object: pointer): int = mp.media_player_set_evas_object(evas_object)
 
 ## audio controls
 proc setCallbacks*(mp: MediaPlayer;
@@ -154,32 +154,33 @@ proc setFormatCallbacks*(mp: MediaPlayer;
     mp.audio_set_format_callbacks(setup, cleanup)
 proc setFormat*(mp: MediaPlayer; format: string; rate: uint; channels: uint) = mp.audio_set_format(format.cstring, rate.cuint, channels.cuint)
 
-proc getLength*(mp: MediaPlayer): time_t = mp.media_player_get_length()
-proc getTime*(mp: MediaPlayer): time_t = mp.media_player_get_time()
-proc setTime*(mp: MediaPlayer; time: time_t) = mp.media_player_set_time(time)
-proc getPosition*(mp: MediaPlayer): cfloat = mp.media_player_get_position()
-proc setPosition*(mp: MediaPlayer; pos: float) = mp.media_player_set_position(pos)
-proc setChapter*(mp: MediaPlayer; chapter: int) = mp.media_player_set_chapter(chapter.cint)
-proc getChapter*(mp: MediaPlayer): int = mp.media_player_get_chapter()
-proc getChapterCount*(mp: MediaPlayer): int = mp.media_player_get_chapter_count()
+proc length*(mp: MediaPlayer): time_t = mp.media_player_get_length()
+proc time*(mp: MediaPlayer): time_t = mp.media_player_get_time()
+proc `time=`*(mp: MediaPlayer; time: time_t) = mp.media_player_set_time(time)
+proc position*(mp: MediaPlayer): cfloat = mp.media_player_get_position()
+proc `position=`*(mp: MediaPlayer; pos: float) = mp.media_player_set_position(pos)
+proc `chapter=`*(mp: MediaPlayer; chapter: int) = mp.media_player_set_chapter(chapter.cint)
+proc chapter*(mp: MediaPlayer): int = mp.media_player_get_chapter()
+proc chapterCount*(mp: MediaPlayer): int = mp.media_player_get_chapter_count()
 proc willPlay*(mp: MediaPlayer): int = mp.media_player_will_play()
-proc getChapterCountForTitle*(mp: MediaPlayer; title: int): int = mp.media_player_get_chapter_count_for_title(title.cint)
-proc setTitle*(mp: MediaPlayer; title: int) = mp.media_player_set_title(title.cint)
-proc getTitle*(mp: MediaPlayer): int = mp.media_player_get_title()
-proc getTitleCount*(mp: MediaPlayer): int = mp.media_player_get_title_count()
+proc chapterCount*(mp: MediaPlayer; title: int): int = mp.media_player_get_chapter_count_for_title(title.cint)
+proc `title=`*(mp: MediaPlayer; title: int) = mp.media_player_set_title(title.cint)
+proc title*(mp: MediaPlayer): int = mp.media_player_get_title()
+proc titleCount*(mp: MediaPlayer): int = mp.media_player_get_title_count()
 proc previousChapter*(mp: MediaPlayer) = mp.media_player_previous_chapter()
 proc nextChapter*(mp: MediaPlayer) = mp.media_player_next_chapter()
-proc getRate*(mp: MediaPlayer): float = mp.media_player_get_rate()
-proc setRate*(mp: MediaPlayer; rate: float): int = mp.media_player_set_rate(rate)
-proc getState*(mp: MediaPlayer): state_t = mp.media_player_get_state()
+proc rate*(mp: MediaPlayer): float = mp.media_player_get_rate()
+proc `rate=`*(mp: MediaPlayer; rate: float): int = mp.media_player_set_rate(rate)
+proc state*(mp: MediaPlayer): state_t = mp.media_player_get_state()
 proc hasVout*(mp: MediaPlayer): uint = mp.media_player_has_vout()
 proc isSeekable*(mp: MediaPlayer): bool = mp.media_player_is_seekable() == 1
 proc canPause*(mp: MediaPlayer): bool = mp.media_player_can_pause() == 1
 proc programScrambled*(mp: MediaPlayer): int = mp.media_player_program_scrambled()
 proc nextFrame*(mp: MediaPlayer) = mp.media_player_next_frame()
 proc navigate*(mp: MediaPlayer; navigate: uint) = mp.media_player_navigate(navigate.cuint)
-proc setVideoTitleDisplay*(mp: MediaPlayer; pos: position_t; timeout: uint) = mp.media_player_set_video_title_display(pos, timeout.cuint)
+proc `videoTitleDisplay=`*(mp: MediaPlayer; pos: position_t; timeout: uint) = mp.media_player_set_video_title_display(pos, timeout.cuint)
 proc addSlave*(mp: MediaPlayer; ty: media_slave_type_t; uri: string; select: bool): int = mp.media_player_add_slave(ty, uri, select)
+
 
 # media track
 

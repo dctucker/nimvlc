@@ -21,3 +21,11 @@ task copyIncludes, "copyIncludes":
 
 task futhark, "futhark":
     exec "nim c -c -d:useFuthark -d:futharkRebuild -d:nodeclguards src/gen.nim"
+    #echo "post-processing"
+    #var source = readFile("src/libvlc-new.nim")
+    #let a = "{.size: sizeof(cuint).} = enum"
+    #let b = "{.size: sizeof(cuint), pure.} = enum"
+    #source = source.replace(a, b)
+    #writeFile("src/libvlc.nim", source)
+    #rmFile("src/libvlc-new.nim")
+
