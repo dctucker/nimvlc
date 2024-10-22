@@ -19,5 +19,4 @@ task copyIncludes, "copyIncludes":
     exec "cp -r /usr/include/vlc include/"
 
 task futhark, "futhark":
-    exec "nim c -d:useFuthark -d:futharkRebuild -d:nodeclguards src/nimvlc.nim"
-        
+    exec "nim c -c -d:useFuthark -d:futharkRebuild -d:nodeclguards src/gen.nim"

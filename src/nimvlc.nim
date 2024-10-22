@@ -1,78 +1,6 @@
+{.passL: "-lvlc"}
+include "libvlc.nim"
 
-when defined(useFuthark):
-    import futhark
-    import std/[strutils,strformat,unicode,json]
-    const Delimiters = [Rune('_'), Rune('-'), Rune(' ')]
-    func toCamelCase(s: string): string =
-        let s = s.strip(chars = Whitespace)
-        var prev = Rune(0)
-        for rune in s.runes:
-            if prev in Delimiters:
-                result.add rune.toUpper
-            elif rune notin Delimiters:
-                result.add rune
-            prev = rune
-    importc:
-        path "./include"
-        "vlc/libvlc.h"
-        "vlc/libvlc_renderer_discoverer.h"
-        "vlc/libvlc_media.h"
-        "vlc/libvlc_media_player.h"
-        "vlc/libvlc_media_list.h"
-        "vlc/libvlc_media_list_player.h"
-        "vlc/libvlc_media_library.h"
-        "vlc/libvlc_media_discoverer.h"
-        "vlc/libvlc_events.h"
-        "vlc/libvlc_dialog.h"
-        "vlc/libvlc_vlm.h"
-        "vlc/deprecated.h"
-        outputPath "src/libvlc.nim"
-        renameCallback proc(name: string, kind: string, partof = ""): string =
-            result = name
-            case kind:
-            of "proc":
-                if name.startsWith("libvlc_"):
-                    let verb = name.split("_")[1]
-                    if verb in @["new", "release", "retain", "wait"]:
-                        return name.replace("libvlc_", "instance_")
-                    return name.replace("libvlc_","")
-                #if name.endsWith("_retain"): return "retain"
-                #if name.endsWith("_release"): return "release"
-            else:
-                return name.replace("libvlc_","")
-        addOpirCallback proc(given: JsonNode): JsonNode {.closure.} =
-            result = % []
-            for i in given.items:
-                var o = i.copy()
-                case i["kind"].getStr:
-                of "enum":
-                    o["fields"] = % []
-                    var prefix = ""
-                    if i.hasKey("name"):
-                        prefix = i["name"].getStr.replace("enum_","")
-                        if prefix.endsWith("_t"):
-                            prefix = prefix[0..^2]
-                    for f in i["fields"]:
-                        let value = f["value"].getStr
-                        var name = f["name"].getStr
-                        name = name.replace(prefix,"").replace("libvlc_","")
-                        let field = %* {"name": name, "value": value}
-                        o["fields"].add(field)
-                        #echo $field
-                #of "typedef":
-                #    let ty = i["type"]
-                #    if ty["kind"].getStr == "alias" and ty["value"].getStr.startsWith("enum_"):
-                #        var name = i["name"].getStr
-                #        if name.endsWith("_t"):
-                #            name = name[0..^3]
-                #        name = name.replace("libvlc_","").toCamelCase().capitalizeAscii()
-                #        o["name"] = % name
-                #        echo name
-                result.add(o)
-else:
-    {.passL: "-lvlc"}
-    include "libvlc.nim"
-#
 
 # libvlc instance
 
@@ -89,22 +17,30 @@ proc newInstance*(args: varargs[string]): Instance =
 
 type EventManager = ptr event_manager_t
 
+
 # renderer discoverer
 
-type RendererItem = object
-    impl: ptr renderer_item_t
+type
+    RendererFlag* {.size: sizeof(cint).} = enum
+        Audio = LIBVLC_RENDERER_CAN_AUDIO
+        Video = LIBVLC_RENDERER_CAN_VIDEO
+    RendererFlags* = set[RendererFlag]
+    RendererItem = object
+        impl: ptr renderer_item_t
 converter toBase*(ri: RendererItem): ptr renderer_item_t = ri.impl
+converter toInt*(rf: RendererFlags): int =
+    for f in rf:
+        result += f.ord
+converter fromInt*(x:int): RendererFlags = cast[RendererFlags](x)
 proc `=destroy`(ri: RendererItem) =
     ri.impl.renderer_item_release()
 proc hold*(ri: RendererItem): RendererItem = RendererItem(impl: ri.renderer_item_hold())
 proc name*(ri: RendererItem): string = return $ri.renderer_item_name()
 proc `type`*(ri: RendererItem): string = return $ri.renderer_item_type()
 proc iconURI*(ri: RendererItem): string = return $ri.renderer_item_icon_uri()
-proc flags*(ri: RendererItem): int = return ri.renderer_item_flags()
+proc flags*(ri: RendererItem): RendererFlags =
+    return ri.renderer_item_flags().int.RendererFlags
 
-type RendererCan {.size: sizeof(cint).} = enum
-    Audio = LIBVLC_RENDERER_CAN_AUDIO
-    Video = LIBVLC_RENDERER_CAN_VIDEO
 type RdDescription = rd_description_t
 type RdDescriptionList = object
     size: csize_t
@@ -131,6 +67,7 @@ proc list*(inst: Instance): RdDescriptionList =
     result.size = inst.renderer_discoverer_list_get(addr pp_services)
     result.services = cast[ptr UncheckedArray[ptr RdDescription]](pp_services)
 
+
 # media
 
 type
@@ -149,9 +86,9 @@ proc newMediaCallbacks*(i: var Instance, open: MediaOpenCb, read: MediaReadCb, s
         close: MediaCloseCb, opaque: pointer): Media =
     result.impl = i.media_new_callbacks(open, read, seek, close, opaque)
 
+
 # media player
-## video controls
-## audio controls
+
 type
     TrackDescription = ptr track_description_t
     TitleDescription = ptr title_description_t
@@ -183,6 +120,7 @@ proc setCallbacks(mp: var MediaPlayer,
          opaque: pointer) =
     mp.video_set_callbacks(lock, unlock, display, opaque)
 
+## video controls
 proc setFormat*(mp: var MediaPlayer, chroma: string; width, height, pitch: uint) = mp.video_set_format(chroma, width.cuint, height.cuint, pitch.cuint)
 proc setFormatCallbacks*(mp: var MediaPlayer,
         setup: proc(opaque: ptr pointer; chroma: cstring; width: ptr cuint; height: ptr cuint; pitches: ptr cuint; lines: ptr cuint): cuint {.cdecl.},
@@ -198,6 +136,7 @@ proc getHwnd*(mp: var MediaPlayer): pointer = mp.media_player_get_hwnd()
 proc setAndroidContext*(mp: MediaPlayer; awindow_handler: pointer) = mp.media_player_set_android_context(awindow_handler)
 proc setEvasObject*(mp: MediaPlayer; evas_object: pointer): int = mp.media_player_set_evas_object(evas_object)
 
+## audio controls
 proc setCallbacks*(mp: MediaPlayer;
         play: proc(data: pointer; samples: pointer; count: cuint; pts: int64): void {.cdecl.},
         pause: proc(data: pointer; pts: int64): void {.cdecl.},

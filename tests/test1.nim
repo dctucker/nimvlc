@@ -11,3 +11,9 @@ import nimvlc
 test "can create new instance":
     discard newInstance()
 
+test "flags":
+    let a = {Audio,Video}
+    assert a.int == 3
+    let b = 3.RendererFlags
+    assert Audio in b
+    assert Video in b
