@@ -14,9 +14,10 @@ task examples, "examples":
     exec "nim c examples/tutorial.nim"
 
 task copyIncludes, "copyIncludes":
-    exec "rm -rf include"
-    exec "mkdir include"
-    exec "cp -r /usr/include/vlc include/"
+    rmDir("include")
+    mkDir("include")
+    let srcdir = getEnv("INCLUDE", "/usr/include")
+    cpDir(srcdir & "/vlc", "include/vlc")
 
 task futhark, "futhark":
     exec "nim c -c -d:useFuthark -d:futharkRebuild -d:nodeclguards src/gen.nim"
