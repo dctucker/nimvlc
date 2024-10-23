@@ -14,3 +14,15 @@ proc newMediaFd*(i: var Instance, arg: cint): Media = result.impl = i.media_new_
 proc newMediaCallbacks*(i: var Instance, open: MediaOpenCb, read: MediaReadCb,
         seek: MediaSeekCb, close: MediaCloseCb, opaque: pointer): Media =
     result.impl = i.media_new_callbacks(open, read, seek, close, opaque)
+
+type
+    #AudioTrack = object
+    #    impl: ptr audio_track_t
+    #VideoViewpoint = object
+    #    impl: ptr video_viewpoint_t
+    #VideoTrack = object
+    #    impl: ptr video_track_t
+    #SubtitleTrack = object
+    #    impl: ptr subtitle_track_t
+    MediaTrack = object
+        impl: ptr media_track_t
