@@ -10,20 +10,19 @@ when defined(macosx):
 
 type Instance = object
     impl: ptr instance_t
+    args: seq[string]
 converter toBase*(i: Instance): ptr instance_t = i.impl
 proc `=destroy`(i: var Instance) = i.impl.instance_release()
-proc newInstance*(args: varargs[string]): Instance =
-    var argc = args.len()
-    var argv: ptr cstring = nil
-    if argc > 0:
-        let a = addr args[0]
-        argv = cast[ptr cstring](a)
+proc newInstance*(vargs: varargs[string]): Instance =
+    var argc = vargs.len()
+    var argv = allocCStringArray(vargs)
 
     setVlcPluginPath()
-    let p = instance_new( args.len().cint, argv )
+    let p = instance_new(argc.cint, cast[ptr cstring](argv))
     if p == nil:
         raise newException(ValueError, "libvlc_new returned null pointer")
-    result = Instance(impl: p)
+    result.impl = p
+    deallocCStringArray(argv)
 
 type EventManager = ptr event_manager_t
 

@@ -1,4 +1,8 @@
-import std/envvars
+when NimMajor == 1:
+    import std/os
+when NimMajor == 2:
+    import std/envvars
+
 const vlcLibPath {.strdefine.}: string = when defined(macosx):
     "/Applications/VLC.app/Contents/MacOS/lib"
 else:

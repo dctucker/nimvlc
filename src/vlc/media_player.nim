@@ -8,7 +8,7 @@ type
     AudioOutput = ptr audio_output_t
     AudioOutputDevice = ptr audio_output_device_t
     SlaveType* = media_slave_type_t
-proc `=destroy`*(td: TrackDescription) = td.impl.track_description_list_release()
+proc `=destroy`*(td: var TrackDescription) = td.impl.track_description_list_release()
 
 
 type MediaPlayer = object
