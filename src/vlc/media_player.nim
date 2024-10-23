@@ -1,10 +1,15 @@
 type
-    TrackDescription = ptr track_description_t
-    TitleDescription = ptr title_description_t
+    TrackDescription = object
+        impl: ptr track_description_t
+
+    TitleDescription = object
+        impl: ptr title_description_t
     ChapterDescription = ptr chapter_description_t
     AudioOutput = ptr audio_output_t
     AudioOutputDevice = ptr audio_output_device_t
     SlaveType* = media_slave_type_t
+proc `=destroy`*(td: TrackDescription) = td.impl.track_description_list_release()
+
 
 type MediaPlayer = object
     impl: ptr media_player_t
@@ -90,9 +95,6 @@ proc nextFrame*(mp: MediaPlayer) = mp.media_player_next_frame()
 proc navigate*(mp: MediaPlayer; navigate: uint) = mp.media_player_navigate(navigate.cuint)
 proc `videoTitleDisplay=`*(mp: MediaPlayer; pos: position_t; timeout: uint) = mp.media_player_set_video_title_display(pos, timeout.cuint)
 proc addSlave*(mp: MediaPlayer; ty: SlaveType; uri: string; select: bool): int = mp.media_player_add_slave(ty, uri, select)
-
-proc release*(td: TrackDescription) = td.track_description_list_release()
-
 proc toggleFullscreen*(mp: MediaPlayer) = mp.impl.toggle_fullscreen()
 proc `fullScreen=`*(mp: MediaPlayer, fullscreen: bool) = mp.set_fullscreen(if fullscreen: 1 else: 0)
 proc `fullScreen`*(mp: MediaPlayer): bool = mp.get_fullscreen() == 1
@@ -129,37 +131,59 @@ proc newViewpoint*(): Viewpoint = Viewpoint(impl: video_new_viewpoint())
 proc updateViewpoint*(mp: MediaPlayer, viewpoint: Viewpoint, absolute: bool): int = mp.video_update_viewpoint(viewpoint, absolute)
 proc spu(mp: MediaPlayer): int = mp.video_get_spu()
 proc spuCount(mp: MediaPlayer): int = mp.video_get_spu_count()
-proc spuDescription(mp: MediaPlayer): TrackDescription = mp.video_get_spu_description()
+proc spuDescription(mp: MediaPlayer): TrackDescription = TrackDescription(impl: mp.video_get_spu_description())
 proc `spu=`*(mp: MediaPlayer, spu: int): int = mp.video_set_spu(spu.cint)
 proc spuDelay(mp: MediaPlayer): int64 = mp.video_get_spu_delay()
 
-#proc video_set_spu_delay*(p_mi: ptr media_player_t; i_delay: int64): cint {.  cdecl, importc: "libvlc_video_set_spu_delay".}
-#proc media_player_get_full_title_descriptions*(p_mi: ptr media_player_t; titles: ptr ptr ptr title_description_t): cint {.cdecl, importc: "libvlc_media_player_get_full_title_descriptions".}
-#proc title_descriptions_release*(p_titles: ptr ptr title_description_t; i_count: cuint): void {.cdecl, importc: "libvlc_title_descriptions_release".}
+type TitleDescriptions = object
+    size: cuint
+    titles: ptr UncheckedArray[ptr TitleDescription]
+
+proc `spu_delay=`*(mp: MediaPlayer, delay: int): int = mp.video_set_spu_delay(delay)
+proc titleDescriptions*(mp: MediaPlayer): TitleDescriptions =
+    var titles: ptr ptr title_description_t
+    result.size = mp.media_player_get_full_title_descriptions(titles.addr).cuint
+    result.titles = cast[ptr UncheckedArray[ptr TitleDescription]](titles)
+proc `=destroy`*(tds: var TitleDescriptions) =
+    var titles = cast[ptr ptr title_description_t](addr tds.titles)
+    titles.title_descriptions_release(tds.size)
 #proc media_player_get_full_chapter_descriptions*(p_mi: ptr media_player_t; i_chapters_of_title: cint; pp_chapters: ptr ptr ptr chapter_description_t): cint {.  cdecl, importc: "libvlc_media_player_get_full_chapter_descriptions".}
 #proc chapter_descriptions_release*(p_chapters: ptr ptr chapter_description_t; i_count: cuint): void {.cdecl, importc: "libvlc_chapter_descriptions_release".}
-#proc video_get_crop_geometry*(p_mi: ptr media_player_t): cstring {.cdecl, importc: "libvlc_video_get_crop_geometry".}
-#proc video_set_crop_geometry*(p_mi: ptr media_player_t; psz_geometry: cstring): void {.  cdecl, importc: "libvlc_video_set_crop_geometry".}
-#proc video_get_teletext*(p_mi: ptr media_player_t): cint {.cdecl, importc: "libvlc_video_get_teletext".}
-#proc video_set_teletext*(p_mi: ptr media_player_t; i_page: cint): void {.cdecl, importc: "libvlc_video_set_teletext".}
-#proc video_get_track_count*(p_mi: ptr media_player_t): cint {.cdecl, importc: "libvlc_video_get_track_count".}
-#proc video_get_track_description*(p_mi: ptr media_player_t): ptr track_description_t {.  cdecl, importc: "libvlc_video_get_track_description".}
-#proc video_get_track*(p_mi: ptr media_player_t): cint {.cdecl, importc: "libvlc_video_get_track".}
-#proc video_set_track*(p_mi: ptr media_player_t; i_track: cint): cint {.cdecl, importc: "libvlc_video_set_track".}
-#proc video_take_snapshot*(p_mi: ptr media_player_t; num: cuint; psz_filepath: cstring; i_width: cuint; i_height: cuint): cint {.  cdecl, importc: "libvlc_video_take_snapshot".}
-#proc video_set_deinterlace*(p_mi: ptr media_player_t; psz_mode: cstring): void {.  cdecl, importc: "libvlc_video_set_deinterlace".}
-#proc video_get_marquee_int*(p_mi: ptr media_player_t; option: cuint): cint {.  cdecl, importc: "libvlc_video_get_marquee_int".}
-#proc video_get_marquee_string*(p_mi: ptr media_player_t; option: cuint): cstring {.  cdecl, importc: "libvlc_video_get_marquee_string".}
-#proc video_set_marquee_int*(p_mi: ptr media_player_t; option: cuint; i_val: cint): void {.  cdecl, importc: "libvlc_video_set_marquee_int".}
-#proc video_set_marquee_string*(p_mi: ptr media_player_t; option: cuint; psz_text: cstring): void {.cdecl, importc: "libvlc_video_set_marquee_string".}
-#proc video_get_logo_int*(p_mi: ptr media_player_t; option: cuint): cint {.cdecl, importc: "libvlc_video_get_logo_int".}
-#proc video_set_logo_int*(p_mi: ptr media_player_t; option: cuint; value: cint): void {.  cdecl, importc: "libvlc_video_set_logo_int".}
-#proc video_set_logo_string*(p_mi: ptr media_player_t; option: cuint; psz_value: cstring): void {.cdecl, importc: "libvlc_video_set_logo_string".}
-#proc video_get_adjust_int*(p_mi: ptr media_player_t; option: cuint): cint {.  cdecl, importc: "libvlc_video_get_adjust_int".}
-#proc video_set_adjust_int*(p_mi: ptr media_player_t; option: cuint; value: cint): void {.  cdecl, importc: "libvlc_video_set_adjust_int".}
-#proc video_get_adjust_float*(p_mi: ptr media_player_t; option: cuint): cfloat {.  cdecl, importc: "libvlc_video_get_adjust_float".}
+proc crop_geometry*(mp: MediaPlayer): cstring = mp.video_get_crop_geometry()
+proc `cropGeometry=`*(mp: MediaPlayer, g: string) = mp.video_set_crop_geometry(g.cstring)
+proc teletext*(mp: MediaPlayer): cint = mp.video_get_teletext()
+proc `teletext=`*(mp: MediaPlayer, page: int) = mp.video_set_teletext(page.cint)
+proc trackCount*(mp: MediaPlayer): cint = mp.video_get_track_count()
+proc trackDescription*(mp: MediaPlayer): ptr track_description_t = mp.video_get_track_description()
+proc track*(mp: MediaPlayer): cint = mp.video_get_track()
+proc `track=`*(mp: MediaPlayer, track: int): int = mp.video_set_track(track.cint)
+proc takeSnapshot*(mp: MediaPlayer, num: uint, filepath: string, width: uint, height: uint): cint = mp.video_take_snapshot(num.cuint, filepath.cstring, width.cuint, height.cuint)
+proc `deinterlace=`*(mp: MediaPlayer, mode: string) = mp.video_set_deinterlace(mode.cstring)
 
+type MarqueeOption = enum_video_marquee_option_t
+proc marqueeInt*(mp: MediaPlayer, option: MarqueeOption): cint = mp.video_get_marquee_int(option.cuint)
+proc marqueeString*(mp: MediaPlayer, option: MarqueeOption): cstring = mp.video_get_marquee_string(option.cuint)
+proc `marqueeInt=`*(mp: MediaPlayer, option: MarqueeOption, val: int) = mp.video_set_marquee_int(option.cuint, val.cint)
+proc `marqueeString=`*(mp: MediaPlayer, option: MarqueeOption, text: string) = mp.video_set_marquee_string(option.cuint, text.cstring)
+
+type LogoOption* = enum_video_logo_option_t
+proc logoInt*(mp: MediaPlayer, option: LogoOption): cint = mp.video_get_logo_int(option.cuint)
+proc `logoInt=`*(mp: MediaPlayer, option: LogoOption, value: int) = mp.video_set_logo_int(option.cuint, value.cint)
+proc `logoString=`*(mp: MediaPlayer, option: LogoOption, value: string) = mp.video_set_logo_string(option.cuint, value.cstring)
+
+type AdjustOption* = enum_video_adjust_option_t
+proc adjustInt*(mp: MediaPlayer, option: AdjustOption): cint = mp.video_get_adjust_int(option.cuint)
+proc `adjustInt=`*(mp: MediaPlayer, option: AdjustOption, value: int) = mp.video_set_adjust_int(option.cuint, value.cint)
+proc adjustFloat*(mp: MediaPlayer, option: AdjustOption): cfloat = mp.video_get_adjust_float(option.cuint)
+proc `adjustFloat=`*(mp: MediaPlayer, option: AdjustOption, value: float) = mp.video_set_adjust_float(option.cuint, value.cfloat)
 
 proc fps*(mp: MediaPlayer): float = mp.media_player_get_fps()
 proc `agl=`*(mp: MediaPlayer; drawable: uint32) = mp.media_player_set_agl(drawable)
 proc `agl`*(mp: MediaPlayer): uint32 = mp.media_player_get_agl()
+
+proc height*(mp: MediaPlayer): int = mp.video_get_height()
+proc width*(mp: MediaPlayer): int = mp.video_get_width()
+proc titleDescription*(mp: MediaPlayer): TrackDescription = TrackDescription(impl: mp.video_get_title_description())
+proc chapterDescription*(mp: MediaPlayer, title: int): TrackDescription = TrackDescription(impl: mp.video_get_chapter_description(title.cint))
+proc `subtitleFile=`*(mp: MediaPlayer, subtitle: string): int = mp.video_set_subtitle_file(subtitle.cstring)
+proc toggleTeletext*(mp: MediaPlayer) = mp.impl.toggle_teletext()
