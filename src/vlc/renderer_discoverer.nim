@@ -24,8 +24,9 @@ type RdDescriptionList = object
     size: csize_t
     services: ptr UncheckedArray[ptr RdDescription]
 iterator items*(list: RdDescriptionList): ptr RdDescription =
-    for i in 0..list.size:
-        yield list.services[i]
+    if list.size > 0:
+        for i in 0..list.size-1:
+            yield list.services[i]
 proc `=destroy`(list: var RdDescriptionList) =
     var pp_services = cast[ptr ptr rd_description_t](addr list.services)
     pp_services.renderer_discoverer_list_release(list.size)

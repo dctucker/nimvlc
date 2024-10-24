@@ -5,8 +5,12 @@ type
     TitleDescription = object
         impl: ptr title_description_t
     ChapterDescription = ptr chapter_description_t
-    AudioOutput = ptr audio_output_t
-    AudioOutputDevice = ptr audio_output_device_t
+    AudioOutput = object
+        impl: ptr audio_output_t
+    AudioOutputDevice = object
+        impl: ptr audio_output_device_t
+    AudioOutputDeviceType = audio_output_device_types_t
+    AudioOutputChannel = audio_output_channel_t
     SlaveType* = media_slave_type_t
 proc `=destroy`*(td: var TrackDescription) = td.impl.track_description_list_release()
 
@@ -93,7 +97,7 @@ proc canPause*(mp: MediaPlayer): bool = mp.media_player_can_pause() == 1
 proc programScrambled*(mp: MediaPlayer): bool = mp.media_player_program_scrambled() == 1
 proc nextFrame*(mp: MediaPlayer) = mp.media_player_next_frame()
 proc navigate*(mp: MediaPlayer; navigate: uint) = mp.media_player_navigate(navigate.cuint)
-proc `videoTitleDisplay=`*(mp: MediaPlayer; pos: position_t; timeout: uint) = mp.media_player_set_video_title_display(pos, timeout.cuint)
+proc `titleDisplay=`*(mp: MediaPlayer, pos: position_t, timeout: uint) = mp.media_player_set_video_title_display(pos, timeout.cuint)
 proc addSlave*(mp: MediaPlayer; ty: SlaveType; uri: string; select: bool): int = mp.media_player_add_slave(ty, uri, select)
 proc toggleFullscreen*(mp: MediaPlayer) = mp.impl.toggle_fullscreen()
 proc `fullScreen=`*(mp: MediaPlayer, fullscreen: bool) = mp.set_fullscreen(if fullscreen: 1 else: 0)
@@ -138,12 +142,13 @@ proc `spu_delay=`*(mp: MediaPlayer, delay: int): int = mp.video_set_spu_delay(de
 # These types are sequences in which all members are alloc/dealloc'd by release
 type
     ImplSeq[T] = object
-        impl: ptr UncheckedArray[ptr T]
         size: cuint
+        impl: ptr UncheckedArray[ptr T]
     TitleDescriptions = ImplSeq[title_description_t]
     ChapterDescriptions = ImplSeq[chapter_description_t]
 iterator items*[T](a: ImplSeq[T]): ptr T =
-    for i in 0..a.size-1: yield a.impl[i]
+    if a.size > 0:
+        for i in 0..a.size-1: yield a.impl[i]
 proc initAddr[T](a: ImplSeq[T]): ptr ptr ptr T = cast[ptr ptr ptr T](a.impl.addr)
 proc releaseAddr[T](a: ImplSeq[T]):  ptr ptr T = cast[  ptr ptr   T](a.impl)
 template destroyImplSeq(ty, releaseFunc) =
@@ -200,6 +205,48 @@ proc `adjustInt=`*(mp: MediaPlayer, option: AdjustOption, value: int) = mp.video
 proc adjustFloat*(mp: MediaPlayer, option: AdjustOption): cfloat = mp.video_get_adjust_float(option.cuint)
 proc `adjustFloat=`*(mp: MediaPlayer, option: AdjustOption, value: float) = mp.video_set_adjust_float(option.cuint, value.cfloat)
 
+
+proc `=destroy`*(ao: AudioOutput) = ao.impl.audio_output_list_release()
+proc audioOutputList*(inst: Instance): AudioOutput = AudioOutput(impl: inst.audio_output_list_get())
+proc `audioOutput=`*(mp: MediaPlayer; name: string): int = mp.audio_output_set(name.cstring)
+
+proc `=destroy`*(list: AudioOutputDevice) = list.impl.audio_output_device_list_release()
+proc audioOutputDeviceEnum*(mp: MediaPlayer): AudioOutputDevice = mp.audio_output_device_enum()
+proc audioOutputDeviceList*(inst: Instance, ao: string): AudioOutputDevice = AudioOutputDevice(impl: inst.audio_output_device_list_get(ao.cstring))
+proc `audioOutputDevice=`*(mp: MediaPlayer, module: string, device_id: string) = mp.audio_output_device_set(module, device_id)
+proc audioOutputDevice*(mp: ptr media_player_t): string = $mp.audio_output_device_get()
+proc toggleMute*(mp: MediaPlayer) = mp.audio_toggle_mute()
+proc mute*(mp: MediaPlayer): cint {.cdecl, importc: "libvlc_audio_get_mute".}
+proc `mute=`*(mp: MediaPlayer, status: bool) = mp.audio_set_mute(if status: 1 else: 0)
+proc volume*(mp: MediaPlayer): int = mp.audio_get_volume()
+proc `volume=`*(mp: MediaPlayer, volume: int): int = mp.audio_set_volume(volume.cint)
+proc audioTrackCount*(mp: MediaPlayer): int = mp.audio_get_track_count()
+proc audioTrackDescription*(mp: MediaPlayer): TrackDescription = TrackDescription(impl: mp.audio_get_track_description())
+proc audioTrack*(mp: MediaPlayer): int = mp.audio_get_track()
+proc `audioTrack=`*(mp: MediaPlayer, track: int): int = mp.audio_set_track(track.cint)
+proc audioChannel*(mp: MediaPlayer): cint = mp.audio_get_channel()
+proc `audioChannel=`*(mp: MediaPlayer, channel: int): cint = mp.audio_set_channel(channel.cint)
+proc audioDelay*(mp: MediaPlayer): int64 = mp.audio_get_delay()
+proc `audioDelay=`*(mp: MediaPlayer, delay: int64): cint = mp.audio_set_delay(delay)
+
+type Equalizer = object
+    impl: ptr equalizer_t
+proc `=destroy`*(eq: Equalizer) = eq.impl.audio_equalizer_release()
+proc equalizerPresetCount*(): uint = audio_equalizer_get_preset_count()
+proc equalizerPresetName*(index: uint): string = $audio_equalizer_get_preset_name(index.cuint)
+proc equalizerBandCount*(): uint = audio_equalizer_get_band_count()
+proc equalizerBandFrequency*(index: uint): float = audio_equalizer_get_band_frequency(index.cuint)
+proc newEqualizer*(): Equalizer = Equalizer(impl: audio_equalizer_new())
+proc newEqualizer*(preset: uint): Equalizer = Equalizer(impl: audio_equalizer_new_from_preset(preset.cuint))
+proc `preamp=`*(eq: Equalizer, preamp: float): int = eq.impl.audio_equalizer_set_preamp(preamp.cfloat)
+proc preamp*(eq: Equalizer): float = eq.impl.audio_equalizer_get_preamp()
+proc `ampAtIndex=`*(eq: Equalizer, amp: float; band: uint): cint = eq.impl.audio_equalizer_set_amp_at_index(amp.cfloat, band.cuint)
+proc ampAtIndex*(eq: Equalizer, band: uint): float = eq.impl.audio_equalizer_get_amp_at_index(band.cuint)
+proc `equalizer=`*(mp: MediaPlayer, eq: Equalizer): int = mp.media_player_set_equalizer(eq.impl)
+
+proc role*(mp: MediaPlayer): media_player_role_t = media_player_role_t(mp.media_player_get_role())
+proc `role=`*(mp: MediaPlayer, role: media_player_role_t): int = mp.media_player_set_role(role.cuint)
+
 proc fps*(mp: MediaPlayer): float = mp.media_player_get_fps()
 proc `agl=`*(mp: MediaPlayer; drawable: uint32) = mp.media_player_set_agl(drawable)
 proc `agl`*(mp: MediaPlayer): uint32 = mp.media_player_get_agl()
@@ -210,3 +257,8 @@ proc titleDescription*(mp: MediaPlayer): TrackDescription = TrackDescription(imp
 proc chapterDescription*(mp: MediaPlayer, title: int): TrackDescription = TrackDescription(impl: mp.video_get_chapter_description(title.cint))
 proc `subtitleFile=`*(mp: MediaPlayer, subtitle: string): int = mp.video_set_subtitle_file(subtitle.cstring)
 proc toggleTeletext*(mp: MediaPlayer) = mp.impl.toggle_teletext()
+
+# audio
+
+proc audio_output_get_device_type*(mp: MediaPlayer): AudioOutputDeviceType = mp.audio_output_get_device_type()
+proc audio_output_set_device_type*(mp: MediaPlayer, ty: AudioOutputDeviceType) = mp.audio_output_set_device_type(ty)
