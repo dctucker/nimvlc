@@ -109,7 +109,6 @@ proc cursor*(mp: MediaPlayer, num: uint): (bool, tuple[x:int,y:int]) =
     if mp.impl.video_get_cursor(num.cuint, x.addr, y.addr) == 0:
         return (true, (x.int, y.int))
 
-
 proc scale(mp: MediaPlayer): float = mp.video_get_scale()
 proc `scale=`*(mp: MediaPlayer, factor: float) = mp.video_set_scale(factor)
 proc aspectRatio*(mp: MediaPlayer): string = $mp.video_get_aspect_ratio()
@@ -134,21 +133,45 @@ proc spuCount(mp: MediaPlayer): int = mp.video_get_spu_count()
 proc spuDescription(mp: MediaPlayer): TrackDescription = TrackDescription(impl: mp.video_get_spu_description())
 proc `spu=`*(mp: MediaPlayer, spu: int): int = mp.video_set_spu(spu.cint)
 proc spuDelay(mp: MediaPlayer): int64 = mp.video_get_spu_delay()
-
-type TitleDescriptions = object
-    size: cuint
-    titles: ptr UncheckedArray[ptr TitleDescription]
-
 proc `spu_delay=`*(mp: MediaPlayer, delay: int): int = mp.video_set_spu_delay(delay)
+
+# These types are sequences in which all members are alloc/dealloc'd by release
+type
+    ImplSeq[T] = object
+        impl: ptr UncheckedArray[ptr T]
+        size: cuint
+    TitleDescriptions = ImplSeq[title_description_t]
+    ChapterDescriptions = ImplSeq[chapter_description_t]
+iterator items*[T](a: ImplSeq[T]): ptr T =
+    for i in 0..a.size-1: yield a.impl[i]
+proc initAddr[T](a: ImplSeq[T]): ptr ptr ptr T = cast[ptr ptr ptr T](a.impl.addr)
+proc releaseAddr[T](a: ImplSeq[T]):  ptr ptr T = cast[  ptr ptr   T](a.impl)
+template destroyImplSeq(ty, releaseFunc) =
+    proc `=destroy`*(a: var ty) =
+        if a.size > 0: releaseFunc(a.releaseAddr, a.size)
+
+#type
+#    TitleDescriptions = object
+#        impl: ptr UncheckedArray[ptr title_description_t]
+#        size: cuint
+#    ChapterDescriptions = object
+#        impl: ptr UncheckedArray[ptr chapter_description_t]
+#        size: cuint
+#iterator items*(tds: TitleDescriptions): ptr title_description_t =
+#    for i in 0..tds.size-1: yield tds.impl[i]
+#iterator items*(cds: ChapterDescriptions): ptr chapter_description_t =
+#    for i in 0..cds.size-1: yield cds.impl[i]
+
+destroyImplSeq(TitleDescriptions, title_descriptions_release)
 proc titleDescriptions*(mp: MediaPlayer): TitleDescriptions =
-    var titles: ptr ptr title_description_t
-    result.size = mp.media_player_get_full_title_descriptions(titles.addr).cuint
-    result.titles = cast[ptr UncheckedArray[ptr TitleDescription]](titles)
-proc `=destroy`*(tds: var TitleDescriptions) =
-    var titles = cast[ptr ptr title_description_t](addr tds.titles)
-    titles.title_descriptions_release(tds.size)
-#proc media_player_get_full_chapter_descriptions*(p_mi: ptr media_player_t; i_chapters_of_title: cint; pp_chapters: ptr ptr ptr chapter_description_t): cint {.  cdecl, importc: "libvlc_media_player_get_full_chapter_descriptions".}
-#proc chapter_descriptions_release*(p_chapters: ptr ptr chapter_description_t; i_count: cuint): void {.cdecl, importc: "libvlc_chapter_descriptions_release".}
+    var titles = mp.media_player_get_full_title_descriptions(result.initAddr)
+    result.size = if titles > 0: titles.cuint else: 0
+
+destroyImplSeq(ChapterDescriptions, chapter_descriptions_release)
+proc chapterDescriptions*(mp: MediaPlayer, title: cint = -1): ChapterDescriptions =
+    var chapters = mp.media_player_get_full_chapter_descriptions(title, result.initAddr)
+    result.size = if chapters > 0: chapters.cuint else: 0
+
 proc crop_geometry*(mp: MediaPlayer): cstring = mp.video_get_crop_geometry()
 proc `cropGeometry=`*(mp: MediaPlayer, g: string) = mp.video_set_crop_geometry(g.cstring)
 proc teletext*(mp: MediaPlayer): cint = mp.video_get_teletext()
