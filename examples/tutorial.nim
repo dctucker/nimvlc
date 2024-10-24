@@ -7,7 +7,7 @@ proc main() =
 
     # Create a new item
     #m = inst.libvlc_media_new_location("file:///home/casey/Videos/iCloud/IMG_1716.MOV")
-    var m = inst.newMediaLocation("file:///home/casey/Videos/iCloud/IMG_1716.MOV")
+    var m = inst.newMedia("file:///home/casey/Videos/iCloud/IMG_1716.MOV")
     #m = inst.newMediaPath("/path/to/test.mov")
 
     # Create a media player playing environement

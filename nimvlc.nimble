@@ -15,7 +15,7 @@ requires "nim >= 1.6.6" # or lower maybe
 include "src/private/platform.nim"
 
 task examples, "examples":
-    exec "nim c examples/tutorial.nim"
+    exec "nim c -o:bin/tutorial examples/tutorial.nim"
 
 task copyIncludes, "copyIncludes":
     rmDir("include")
