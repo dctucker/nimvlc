@@ -9,7 +9,7 @@ import unittest
 
 import nimvlc
 test "can create new instance":
-    var inst = newInstance("-v")
+    var inst = newInstance("--")
     assert Meta.Title.ord == 0
 
 test "renderer flags convert to/from int":

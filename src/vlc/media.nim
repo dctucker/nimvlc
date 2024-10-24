@@ -12,7 +12,7 @@ type
     MediaSeekCb*  = proc (opaque: pointer; offset: uint64): cint {.cdecl.}
     MediaCloseCb* = proc (opaque: pointer): void {.cdecl.}
 converter toBase*(m: Media): ptr media_t = m.impl
-proc `=destroy`(m: var Media) = m.impl.media_release()
+destroyImpl(Media, media_release)
 proc newMedia*(i: var Instance, arg: Path): Media = result.impl = i.media_new_path(arg.cstring)
 proc newMedia*(i: var Instance, arg: string): Media = result.impl = i.media_new_location(arg.cstring)
 proc newMedia*(i: var Instance, arg: cint): Media = result.impl = i.media_new_fd(arg)

@@ -6,13 +6,22 @@ when defined(macosx):
     {.passL: "-L" & vlcLibPath.}
     {.passL: "-rpath " & vlcLibPath.}
 
+when NimMajor == 1:
+    template destroyImpl(ty, releaseFunc) =
+        proc `=destroy`*(a: var ty) =
+            a.impl.releaseFunc()
+when NimMajor == 2:
+    template destroyImpl(ty, releaseFunc) =
+        proc `=destroy`*(a: ty) =
+            a.impl.releaseFunc()
+
 # libvlc instance
 
 type Instance = object
     impl: ptr instance_t
     args: seq[string]
 converter toBase*(i: Instance): ptr instance_t = i.impl
-proc `=destroy`(i: var Instance) = i.impl.instance_release()
+destroyImpl(Instance, instance_release)
 proc newInstance*(vargs: varargs[string]): Instance =
     var argc = vargs.len()
     var argv = allocCStringArray(vargs)

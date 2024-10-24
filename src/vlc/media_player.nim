@@ -1,7 +1,6 @@
 type
     TrackDescription = object
         impl: ptr track_description_t
-
     TitleDescription = object
         impl: ptr title_description_t
     ChapterDescription = ptr chapter_description_t
@@ -12,13 +11,13 @@ type
     AudioOutputDeviceType = audio_output_device_types_t
     AudioOutputChannel = audio_output_channel_t
     SlaveType* = media_slave_type_t
-proc `=destroy`*(td: var TrackDescription) = td.impl.track_description_list_release()
+destroyImpl(TrackDescription, track_description_list_release)
 
 
 type MediaPlayer = object
     impl: ptr media_player_t
 converter toBase*(mp: MediaPlayer): ptr media_player_t = mp.impl
-proc `=destroy`(mp: var MediaPlayer) = mp.impl.media_player_release()
+destroyImpl(MediaPlayer, media_player_release)
 proc newMediaPlayer*(inst: Instance): MediaPlayer = MediaPlayer(impl: inst.media_player_new())
 proc newMediaPlayer*(m: Media): MediaPlayer = MediaPlayer(impl: m.media_player_new_from_media())
 proc retain*(mp: MediaPlayer) = mp.media_player_retain() # copy?
@@ -151,9 +150,14 @@ iterator items*[T](a: ImplSeq[T]): ptr T =
         for i in 0..a.size-1: yield a.impl[i]
 proc initAddr[T](a: ImplSeq[T]): ptr ptr ptr T = cast[ptr ptr ptr T](a.impl.addr)
 proc releaseAddr[T](a: ImplSeq[T]):  ptr ptr T = cast[  ptr ptr   T](a.impl)
-template destroyImplSeq(ty, releaseFunc) =
-    proc `=destroy`*(a: var ty) =
-        if a.size > 0: releaseFunc(a.releaseAddr, a.size)
+when NimMajor == 1:
+    template destroyImplSeq(ty, releaseFunc) =
+        proc `=destroy`*(a: var ty) =
+            if a.size > 0: releaseFunc(a.releaseAddr, a.size)
+when NimMajor == 2:
+    template destroyImplSeq(ty, releaseFunc) =
+        proc `=destroy`*(a: ty) =
+            if a.size > 0: releaseFunc(a.releaseAddr, a.size)
 
 #type
 #    TitleDescriptions = object
@@ -206,11 +210,11 @@ proc adjustFloat*(mp: MediaPlayer, option: AdjustOption): cfloat = mp.video_get_
 proc `adjustFloat=`*(mp: MediaPlayer, option: AdjustOption, value: float) = mp.video_set_adjust_float(option.cuint, value.cfloat)
 
 
-proc `=destroy`*(ao: AudioOutput) = ao.impl.audio_output_list_release()
+destroyImpl(AudioOutput, audio_output_list_release)
 proc audioOutputList*(inst: Instance): AudioOutput = AudioOutput(impl: inst.audio_output_list_get())
 proc `audioOutput=`*(mp: MediaPlayer; name: string): int = mp.audio_output_set(name.cstring)
 
-proc `=destroy`*(list: AudioOutputDevice) = list.impl.audio_output_device_list_release()
+destroyImpl(AudioOutputDevice, audio_output_device_list_release)
 proc audioOutputDeviceEnum*(mp: MediaPlayer): AudioOutputDevice = mp.audio_output_device_enum()
 proc audioOutputDeviceList*(inst: Instance, ao: string): AudioOutputDevice = AudioOutputDevice(impl: inst.audio_output_device_list_get(ao.cstring))
 proc `audioOutputDevice=`*(mp: MediaPlayer, module: string, device_id: string) = mp.audio_output_device_set(module, device_id)
@@ -231,7 +235,7 @@ proc `audioDelay=`*(mp: MediaPlayer, delay: int64): cint = mp.audio_set_delay(de
 
 type Equalizer = object
     impl: ptr equalizer_t
-proc `=destroy`*(eq: Equalizer) = eq.impl.audio_equalizer_release()
+destroyImpl(Equalizer, audio_equalizer_release)
 proc equalizerPresetCount*(): uint = audio_equalizer_get_preset_count()
 proc equalizerPresetName*(index: uint): string = $audio_equalizer_get_preset_name(index.cuint)
 proc equalizerBandCount*(): uint = audio_equalizer_get_band_count()

@@ -10,8 +10,7 @@ converter toInt*(rf: RendererFlags): int =
     for f in rf:
         result += f.ord
 converter fromInt*(x:int): RendererFlags = cast[RendererFlags](x)
-proc `=destroy`(ri: var RendererItem) =
-    ri.impl.renderer_item_release()
+destroyImpl(RendererItem, renderer_item_release)
 proc hold*(ri: RendererItem): RendererItem = RendererItem(impl: ri.renderer_item_hold())
 proc name*(ri: RendererItem): string = return $ri.renderer_item_name()
 proc `type`*(ri: RendererItem): string = return $ri.renderer_item_type()
@@ -35,7 +34,7 @@ proc len*(list: RdDescriptionList): csize_t = return list.size
 type RendererDiscoverer = object
     impl: ptr renderer_discoverer_t
 converter toBase*(rd: RendererDiscoverer): ptr renderer_discoverer_t = rd.impl
-proc `=destroy`(rd: var RendererDiscoverer) = rd.impl.renderer_discoverer_release()
+destroyImpl(RendererDiscoverer, renderer_discoverer_release)
 proc newRendererDiscoverer*(inst: Instance, name: cstring): RendererDiscoverer =
     result.impl = inst.renderer_discoverer_new(name)
 proc start*(rd: RendererDiscoverer): int = return rd.renderer_discoverer_start()
