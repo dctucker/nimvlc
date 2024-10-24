@@ -138,26 +138,10 @@ proc `spu=`*(mp: MediaPlayer, spu: int): int = mp.video_set_spu(spu.cint)
 proc spuDelay(mp: MediaPlayer): int64 = mp.video_get_spu_delay()
 proc `spu_delay=`*(mp: MediaPlayer, delay: int): int = mp.video_set_spu_delay(delay)
 
-# These types are sequences in which all members are alloc/dealloc'd by release
+
 type
-    ImplSeq[T] = object
-        size: cuint
-        impl: ptr UncheckedArray[ptr T]
     TitleDescriptions = ImplSeq[title_description_t]
     ChapterDescriptions = ImplSeq[chapter_description_t]
-iterator items*[T](a: ImplSeq[T]): ptr T =
-    if a.size > 0:
-        for i in 0..a.size-1: yield a.impl[i]
-proc initAddr[T](a: ImplSeq[T]): ptr ptr ptr T = cast[ptr ptr ptr T](a.impl.addr)
-proc releaseAddr[T](a: ImplSeq[T]):  ptr ptr T = cast[  ptr ptr   T](a.impl)
-when NimMajor == 1:
-    template destroyImplSeq(ty, releaseFunc) =
-        proc `=destroy`*(a: var ty) =
-            if a.size > 0: releaseFunc(a.releaseAddr, a.size)
-when NimMajor == 2:
-    template destroyImplSeq(ty, releaseFunc) =
-        proc `=destroy`*(a: ty) =
-            if a.size > 0: releaseFunc(a.releaseAddr, a.size)
 
 #type
 #    TitleDescriptions = object

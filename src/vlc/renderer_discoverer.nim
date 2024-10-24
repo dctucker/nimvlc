@@ -19,17 +19,8 @@ proc flags*(ri: RendererItem): RendererFlags =
     return ri.renderer_item_flags().int.RendererFlags
 
 type RdDescription = rd_description_t
-type RdDescriptionList = object
-    size: csize_t
-    services: ptr UncheckedArray[ptr RdDescription]
-iterator items*(list: RdDescriptionList): ptr RdDescription =
-    if list.size > 0:
-        for i in 0..list.size-1:
-            yield list.services[i]
-proc `=destroy`(list: var RdDescriptionList) =
-    var pp_services = cast[ptr ptr rd_description_t](addr list.services)
-    pp_services.renderer_discoverer_list_release(list.size)
-proc len*(list: RdDescriptionList): csize_t = return list.size
+type RdDescriptionList = ImplSeq[RdDescription]
+destroyImplSeq(RdDescriptionList, renderer_discoverer_list_release)
 
 type RendererDiscoverer = object
     impl: ptr renderer_discoverer_t
@@ -40,7 +31,7 @@ proc newRendererDiscoverer*(inst: Instance, name: cstring): RendererDiscoverer =
 proc start*(rd: RendererDiscoverer): int = return rd.renderer_discoverer_start()
 proc stop*(rd: RendererDiscoverer) = rd.renderer_discoverer_stop()
 proc eventManager*(rd: RendererDiscoverer): EventManager = return rd.renderer_discoverer_event_manager()
-proc list*(inst: Instance): RdDescriptionList =
+proc rdList*(inst: Instance): RdDescriptionList =
     var pp_services: ptr ptr rd_description_t
-    result.size = inst.renderer_discoverer_list_get(addr pp_services)
-    result.services = cast[ptr UncheckedArray[ptr RdDescription]](pp_services)
+    result.size = inst.renderer_discoverer_list_get(addr pp_services).cuint
+    result.impl = cast[ptr UncheckedArray[ptr RdDescription]](pp_services)
