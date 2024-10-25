@@ -18,7 +18,7 @@ when NimMajor == 2:
 
 # These types are sequences in which all members are alloc/dealloc'd by release
 type
-    ImplSeq[T] = object
+    ImplSeq[T] = object of RootObj
         size: cuint
         impl: ptr UncheckedArray[ptr T]
 iterator items*[T](a: ImplSeq[T]): ptr T =

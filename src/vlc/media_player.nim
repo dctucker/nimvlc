@@ -10,7 +10,6 @@ type
         impl: ptr audio_output_device_t
     AudioOutputDeviceType = audio_output_device_types_t
     AudioOutputChannel = audio_output_channel_t
-    SlaveType* = media_slave_type_t
 destroyImpl(TrackDescription, track_description_list_release)
 
 
