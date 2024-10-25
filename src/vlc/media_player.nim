@@ -15,8 +15,9 @@ destroyImpl(TrackDescription, track_description_list_release)
 
 type MediaPlayer = object
     impl: ptr media_player_t
-converter toBase*(mp: MediaPlayer): ptr media_player_t = mp.impl
 destroyImpl(MediaPlayer, media_player_release)
+converter toBase*(mp: MediaPlayer): ptr media_player_t = mp.impl
+converter fromBase*(p: ptr media_player_t): MediaPlayer = MediaPlayer(impl: p)
 proc newMediaPlayer*(inst: Instance): MediaPlayer = MediaPlayer(impl: inst.media_player_new())
 proc newMediaPlayer*(m: Media): MediaPlayer = MediaPlayer(impl: m.media_player_new_from_media())
 proc retain*(mp: MediaPlayer) = mp.media_player_retain() # copy?

@@ -3,7 +3,8 @@ import nimvlc
 
 proc main() =
     # Load the VLC engine
-    var inst = newInstance()
+    var args = commandLineParams()
+    var inst = newInstance(args)
 
     # Create a new item
     #m = inst.libvlc_media_new_location("file:///home/casey/Videos/iCloud/IMG_1716.MOV")
