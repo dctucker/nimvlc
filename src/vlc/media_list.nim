@@ -7,8 +7,10 @@
 #proc hold*(mtl: MediaTrack): MediaTrack = MediaTrack(impl: mt.media_track_hold())
 #proc release*(mtl: MediaTrack) = mt.media_track_release()
 
-proc newMediaList(i: Instance ): MediaList = result.impl = i.media_list_new()
 destroyImpl(MediaList, media_list_release)
+converter toBase*(ml: MediaList): ptr media_list_t = ml.impl
+converter fromBase*(p: ptr media_list_t): MediaList = result.impl = p
+proc newMediaList(i: Instance ): MediaList = result.impl = i.media_list_new()
 proc retain(ml: MediaList) = ml.impl.media_list_retain()
 proc `media=`(ml: MediaList, m: Media ) = ml.media_list_set_media(m)
 proc media(ml: MediaList): Media = result.impl = ml.media_list_media()

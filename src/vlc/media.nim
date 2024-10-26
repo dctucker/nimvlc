@@ -27,7 +27,6 @@ type
 destroyImpl(Media, media_release)
 converter toBase*(m: Media): ptr media_t = m.impl
 converter fromBase*(p: ptr media_t): Media = Media(impl: p)
-converter toBase*(ml: MediaList): ptr media_list_t = ml.impl
 proc newMedia*(i: var Instance, arg: Path): Media = result.impl = i.media_new_path(arg.cstring)
 proc newMedia*(i: var Instance, arg: string): Media = result.impl = i.media_new_location(arg.cstring)
 proc newMedia*(i: var Instance, arg: cint): Media = result.impl = i.media_new_fd(arg)
