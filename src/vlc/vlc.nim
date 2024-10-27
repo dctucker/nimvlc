@@ -1,21 +1,28 @@
 # libvlc instance
 
-type Instance = object
+type CstrArr = object
+    argc: int
+    argv: cstringArray
+proc `=destroy`(a: CstrArr) = deallocCstringArray(a.argv)
+converter toCstrArr(a: openarray[string]): CstrArr = CStrArr(argc: a.len, argv: a.allocCStringArray)
+converter toPtrCstr(a: CstrArr): ptr cstring = cast[ptr cstring](a.argv)
+converter toCint(a: CstrArr): cint = a.argc.cint
+proc len*(a: CstrArr): int = a.argc
+
+type Instance* = object
     impl: ptr instance_t
     args: seq[string]
 destroyImpl(Instance, instance_release)
 convertImpl(Instance, instance_t)
 proc newInstance*(vargs: varargs[string]): Instance =
     var argc = vargs.len()
-    var argv = allocCStringArray(vargs)
+    var argv = toCstrArr(vargs)
 
     setVlcPluginPath()
-    let p = instance_new(argc.cint, cast[ptr cstring](argv))
+    let p = instance_new(argc.cint, argv)
     if p == nil:
         raise newException(ValueError, "libvlc_new returned null pointer")
     result.impl = p
-    deallocCStringArray(argv)
-
 
 type
     EventManager = ptr event_manager_t

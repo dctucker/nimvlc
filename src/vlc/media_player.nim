@@ -1,23 +1,21 @@
 type
-    TrackDescription = object
+    TrackDescription* = object
         impl: ptr track_description_t
-    TitleDescription = object
+    TitleDescription* = object
         impl: ptr title_description_t
-    ChapterDescription = ptr chapter_description_t
-    AudioOutput = object
+    ChapterDescription* = ptr chapter_description_t
+    AudioOutput* = object
         impl: ptr audio_output_t
-    AudioOutputDevice = object
+    AudioOutputDevice* = object
         impl: ptr audio_output_device_t
-    AudioOutputDeviceType = audio_output_device_types_t
-    AudioOutputChannel = audio_output_channel_t
+    AudioOutputDeviceType* = audio_output_device_types_t
+    AudioOutputChannel* = audio_output_channel_t
 destroyImpl(TrackDescription, track_description_list_release)
-
 
 type MediaPlayer = object
     impl: ptr media_player_t
 destroyImpl(MediaPlayer, media_player_release)
-converter toBase*(mp: MediaPlayer): ptr media_player_t = mp.impl
-converter fromBase*(p: ptr media_player_t): MediaPlayer = MediaPlayer(impl: p)
+convertImpl(MediaPlayer, media_player_t)
 proc newMediaPlayer*(inst: Instance): MediaPlayer = MediaPlayer(impl: inst.media_player_new())
 proc newMediaPlayer*(m: Media): MediaPlayer = MediaPlayer(impl: m.media_player_new_from_media())
 proc retain*(mp: MediaPlayer) = mp.media_player_retain() # copy?
@@ -119,7 +117,10 @@ proc `aspectRatio=`*(mp: MediaPlayer, aspect: string) = mp.video_set_aspect_rati
 
 type Viewpoint = object
     impl: ptr video_viewpoint_t
-converter toBase*(v: Viewpoint): ptr video_viewpoint_t = v.impl
+proc `=destroy`*(v: var Viewpoint) = libvlc.free(v.impl)
+convertImpl(Viewpoint, video_viewpoint_t)
+proc newViewpoint*(): Viewpoint = Viewpoint(impl: video_new_viewpoint())
+proc updateViewpoint*(mp: MediaPlayer, viewpoint: Viewpoint, absolute: bool): int = mp.video_update_viewpoint(viewpoint, absolute)
 proc yaw*(v: Viewpoint): float = v.impl.f_yaw
 proc `yaw=`*(v: Viewpoint, w: float) = v.impl.f_yaw = w
 proc pitch*(v: Viewpoint): float = v.impl.f_pitch
@@ -129,8 +130,6 @@ proc `roll=`*(v: Viewpoint, w: float) = v.impl.f_roll = w
 proc fieldOfView*(v: Viewpoint): float = v.impl.f_field_of_view
 proc `fieldOfView=`*(v: Viewpoint, w: float) = v.impl.f_field_of_view = w
 
-proc newViewpoint*(): Viewpoint = Viewpoint(impl: video_new_viewpoint())
-proc updateViewpoint*(mp: MediaPlayer, viewpoint: Viewpoint, absolute: bool): int = mp.video_update_viewpoint(viewpoint, absolute)
 proc spu(mp: MediaPlayer): int = mp.video_get_spu()
 proc spuCount(mp: MediaPlayer): int = mp.video_get_spu_count()
 proc spuDescription(mp: MediaPlayer): TrackDescription = TrackDescription(impl: mp.video_get_spu_description())
