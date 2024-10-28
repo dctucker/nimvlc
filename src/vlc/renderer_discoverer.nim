@@ -5,7 +5,7 @@ type
     RendererFlags* = set[RendererFlag]
     RendererItem = object
         impl: ptr renderer_item_t
-converter toBase*(ri: RendererItem): ptr renderer_item_t = ri.impl
+convertImpl(RendererItem, renderer_item_t)
 converter toInt*(rf: RendererFlags): int =
     for f in rf:
         result += f.ord

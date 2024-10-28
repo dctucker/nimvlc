@@ -39,6 +39,15 @@ template convertImpl(ty, base) =
     converter toBase(a: ty): ptr base = a.impl
     converter fromBase(p: ptr base): ty = result.impl = p
 
+type CstrArr = object
+    argc: int
+    argv: cstringArray
+proc `=destroy`(a: CstrArr) = deallocCstringArray(a.argv)
+converter toCstrArr(a: openarray[string]): CstrArr = CStrArr(argc: a.len, argv: a.allocCStringArray)
+converter toPtrCstr(a: CstrArr): ptr cstring = cast[ptr cstring](a.argv)
+converter toCint(a: CstrArr): cint = a.argc.cint
+proc len*(a: CstrArr): int = a.argc
+
 include "vlc/vlc.nim"
 include "vlc/renderer_discoverer.nim"
 include "vlc/media.nim"
