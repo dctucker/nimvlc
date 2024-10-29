@@ -252,16 +252,27 @@ converter toEvent(p: ptr struct_event_t): Event =
 #        else:
 #            discard
 
-type Callback = callback_t
-#type Callback = object
-#    cbk: proc(event: Event, data: pointer)
-#    c_cbk: proc(event: ptr struct_event_t, data: pointer) {.cdecl.} =
-#        cbk(event, data)
+#type Callback = callback_t
+type
+    CallbackFn = proc(event: Event, data: pointer)
+    Callback = object
+        fn: CallbackFn
+        cbk: callback_t
+        data: pointer
 
-proc eventAttach*(em: EventManager, t: EventType, cbk: Callback, user_data: pointer): int =
-    var callback = proc(event: ptr struct_event_t, data: pointer) {.cdecl.} =
-        cbk(event, data)
-    libvlc.event_attach(em, t.cint, cbk, user_data)
+proc newCallback*(data: pointer, fn: CallbackFn): Callback =
+    result.fn = fn
+    result.cbk = proc(event: ptr struct_event_t, data: pointer) {.cdecl.} =
+        var cbk = cast[ptr Callback](data)
+        cbk.fn(event, cbk.data)
 
-proc eventDetach*(em: EventManager, t: EventType, cbk: Callback, user_data: pointer)      =
-    libvlc.event_detach(em, t.cint, cbk, user_data)
+template callback*(body: untyped) =
+    newCallback( proc(event: Event, data: pointer) =
+        body
+    )
+
+proc eventAttach*(em: EventManager, t: EventType, cbk: Callback): int =
+    libvlc.event_attach(em, t.cint, cbk.cbk, cbk.addr)
+
+proc eventDetach*(em: EventManager, t: EventType, cbk: Callback) =
+    libvlc.event_detach(em, t.cint, cbk.cbk, cbk.addr)

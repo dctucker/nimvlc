@@ -17,7 +17,7 @@ proc newInstance*(vargs: varargs[string]): Instance =
 
 type
     EventManager = ptr event_manager_t
-    EventType = enum_event_e
+    EventType* = enum_event_e
     ExitHandler = proc(a0: pointer): void {.cdecl.}
 proc errmsg*(): string = $libvlc.errmsg()
 proc clearerr*() = libvlc.clearerr()

@@ -19,3 +19,6 @@ test "renderer flags convert to/from int":
     assert Audio in b
     assert Video in b
 
+test "callback definition":
+    const cbk1 = nil.newCallback proc(event: Event, data: pointer) =
+        assert event.kind == EventType.MediaMetaChanged
