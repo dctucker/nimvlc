@@ -8,6 +8,8 @@
 import unittest
 
 import nimvlc
+import libvlc
+
 test "can create new instance":
     var inst = newInstance("--")
     assert Meta.Title.ord == 0
@@ -22,3 +24,10 @@ test "renderer flags convert to/from int":
 test "callback definition":
     const cbk1 = nil.newCallback proc(event: Event, data: pointer) =
         assert event.kind == EventType.MediaMetaChanged
+    var ev: libvlc.struct_event_t
+    ev.type_field = EventType.MediaStateChanged.cint
+    var e = ev.addr.fromBase
+    check:
+        e.new_state() == State.NothingSpecial
+    expect FieldDefect:
+        discard e.new_time()

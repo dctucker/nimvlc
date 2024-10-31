@@ -69,7 +69,7 @@ proc logSet*(i: Instance, cb: LogCb, data: pointer) =
     libvlc.log_set(i, cast[log_cb](log_callback), data)
 proc logSetFile*(i: Instance, stream: ptr CFile) =
     libvlc.log_set_file(i, cast[ptr libvlc.FILE](stream))
-proc `=destroy`*(list: ModuleDescription) = list.module_description_list_release()
+destroyImpl(ModuleDescription, module_description_list_release)
 proc audioFilterList*(i: Instance): ModuleDescription = result.impl = libvlc.audio_filter_list_get(i)
 proc videoFilterList*(i: Instance): ModuleDescription = result.impl = libvlc.video_filter_list_get(i)
 proc clock*(): int64 = libvlc.clock()

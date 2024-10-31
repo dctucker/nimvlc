@@ -36,13 +36,13 @@ when NimMajor == 2:
         proc `=destroy`*(a: ty) =
             if a.size > 0: releaseFunc(a.releaseAddr, a.size)
 template convertImpl(ty, base) =
-    converter toBase(a: ty): ptr base = a.impl
-    converter fromBase(p: ptr base): ty = result.impl = p
+    converter toBase*(a: ty): ptr base = a.impl
+    converter fromBase*(p: ptr base): ty = result.impl = p
 
 type CstrArr = object
     argc: int
     argv: cstringArray
-proc `=destroy`(a: CstrArr) = deallocCstringArray(a.argv)
+proc `=destroy`(a: var CstrArr) = deallocCstringArray(a.argv)
 converter toCstrArr(a: openarray[string]): CstrArr = CStrArr(argc: a.len, argv: a.allocCStringArray)
 converter toPtrCstr(a: CstrArr): ptr cstring = cast[ptr cstring](a.argv)
 converter toCint(a: CstrArr): cint = a.argc.cint
