@@ -22,7 +22,7 @@ test "renderer flags convert to/from int":
     assert Video in b
 
 test "callback definition":
-    const cbk1 = nil.newCallback proc(event: Event, data: pointer) =
+    const cbk1 = nil.newCallback do (event: Event, data: pointer):
         assert event.kind == EventType.MediaMetaChanged
     var ev: libvlc.struct_event_t
     ev.type_field = EventType.MediaStateChanged.cint
