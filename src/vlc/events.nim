@@ -2,6 +2,7 @@
 type
     Event* = object
         impl: ptr event_t
+    EventTarget* = (Instance or Media or MediaPlayer or MediaList or MediaListPlayer or MediaDiscoverer or RendererDiscoverer or Vlm)
     EventType* = enum # MediaEvent | MediaPlayerEvent | MediaListEvent | MediaListViewEvent | MediaListPlayerEvent | DiscovererEvent | VlmEvent
     #MediaEvent = enum
         MediaMetaChanged=0,
@@ -127,8 +128,9 @@ type
         cbk: callback_t
         data: pointer
 
-proc newCallback*(data: pointer, fn: CallbackFn): Callback =
+proc newCallback*(data: pointer=nil, fn: CallbackFn): Callback =
     result.fn = fn
+    result.data = data
     result.cbk = proc(event: ptr event_t, data: pointer) {.cdecl.} =
         var cbk = cast[ptr Callback](data)
         cbk.fn(event, cbk.data)
@@ -138,3 +140,12 @@ proc eventAttach*(em: EventManager, t: EventType, cbk: Callback): int =
 
 proc eventDetach*(em: EventManager, t: EventType, cbk: Callback) =
     libvlc.event_detach(em, t.cint, cbk.cbk, cbk.addr)
+
+proc attach*[T: EventTarget](obj: T, t: EventType, fn: CallbackFn): Callback =
+    result = newCallback(obj.impl, fn)
+    let err = eventAttach(obj.eventManager, t, result, obj.impl)
+    if err != 0:
+        raise newException(OutOfMemDefect, "libvlc_event_attach returned ENOMEM")
+
+proc detach*[T: EventTarget](obj: T, t: EventType, cb: Callback) =
+    return eventDetach(obj.eventManager, t, cb, obj.impl)
