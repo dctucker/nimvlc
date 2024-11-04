@@ -2,8 +2,17 @@
 type
     Event* = object
         impl: ptr event_t
-    EventTarget* = (Instance or Media or MediaPlayer or MediaList or MediaListPlayer or MediaDiscoverer or RendererDiscoverer or Vlm)
-    EventType* = enum # MediaEvent | MediaPlayerEvent | MediaListEvent | MediaListViewEvent | MediaListPlayerEvent | DiscovererEvent | VlmEvent
+    EventTarget* = (
+        Instance or
+        Media or
+        MediaPlayer or
+        MediaList or
+        MediaListPlayer or
+        #MediaDiscoverer or    ## \deprecated Useless, media_discoverer events are only triggered when calling libvlc_media_discoverer_start() and libvlc_media_discoverer_stop().
+        RendererDiscoverer or
+        Vlm
+    )
+    EventType* {.size: sizeof(cuint).} = enum # MediaEvent | MediaPlayerEvent | MediaListEvent | MediaListViewEvent | MediaListPlayerEvent | DiscovererEvent | VlmEvent
     #MediaEvent = enum
         MediaMetaChanged=0,
         MediaSubItemAdded,
@@ -59,8 +68,8 @@ type
         MediaListPlayerNextItemSet,
         MediaListPlayerStopped
     #DiscovererEvent = enum
-        MediaDiscovererStarted=0x500, #* deprecated Useless event, it will be triggered only when calling libvlc_media_discoverer_stop()
-        MediaDiscovererEnded,
+        MediaDiscovererStarted=0x500, ## \deprecated Useless event, it will be triggered only when calling libvlc_media_discoverer_start()
+        MediaDiscovererEnded,         ## \deprecated Useless event, it will be triggered only when calling libvlc_media_discoverer_stop()
         RendererDiscovererItemAdded,
         RendererDiscovererItemDeleted
     #VlmEvent = enum
@@ -79,7 +88,8 @@ type
 convertImpl(Event, event_t)
 proc name*(t: EventType): string = $event_type_name(t.cint)
 
-proc kind*(event: Event): EventType = EventType(event.impl.type_field)
+proc kind*(event: Event): EventType = {.warning[HoleEnumConv]:off.}:
+    EventType(event.impl.type_field)
 
 template eventGet(lib1, lib2: untyped, types: varargs[EventType]) =
     let t = EventType(e.kind)
@@ -143,7 +153,7 @@ proc eventDetach*(em: EventManager, t: EventType, cbk: Callback) =
 
 proc attach*[T: EventTarget](obj: T, t: EventType, fn: CallbackFn): Callback =
     result = newCallback(obj.impl, fn)
-    let err = eventAttach(obj.eventManager, t, result, obj.impl)
+    let err = eventAttach(obj.eventManager, t, result)
     if err != 0:
         raise newException(OutOfMemDefect, "libvlc_event_attach returned ENOMEM")
 

@@ -25,9 +25,9 @@ task copyIncludes, "copyIncludes":
 
 task post, "post-processing":
     var source = readFile("src/libvlc-new.nim")
-    let a = "{.size: sizeof(cuint).} = enum"
-    let b = "{.size: sizeof(cuint), pure.} = enum"
-    source = source.replace(a, b)
+    source = source.replace("{.size: sizeof(cuint).} = enum", "{.size: sizeof(cuint), pure.} = enum")
+    source = source.replace("{.size: sizeof(cint).} = enum",   "{.size: sizeof(cint), pure.} = enum")
+    source = source.replace("_enumval "," ")
     writeFile("src/libvlc.nim", source)
     rmFile("src/libvlc-new.nim")
 

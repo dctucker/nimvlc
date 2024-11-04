@@ -63,7 +63,18 @@ when defined(useFuthark):
                     for f in i["fields"]:
                         let value = f["value"].getStr
                         var name = f["name"].getStr
-                        name = name.replace(prefix,"").replace("libvlc_","")
+                        name = name.replace(prefix,"")
+                            .replace("libvlc_","").replace("LIBVLC_","")
+                            .replace("track_","")
+                            .replace("marquee_","")
+                            .replace("logo_","")
+                            .replace("adjust_","")
+                            .replace("role_","")
+                            .replace("AudioChannel_","")
+                            .replace("AudioOutputDevice_","Output")
+                            .replace("DIALOG_QUESTION_","")
+                            .replace("media_discoverer_","")
+                            .toCamelCase().capitalize()
                         let field = %* {"name": name, "value": value}
                         o["fields"].add(field)
                         #echo $field

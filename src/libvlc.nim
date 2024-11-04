@@ -1,15 +1,15 @@
 
 const
-  media_option_trusted* = cuint(2)
+  MediaOptionTrusted* = cuint(2)
 const
-  media_option_unique* = cuint(256)
+  MediaOptionUnique* = cuint(256)
 const
-  title_menu* = cuint(1)
+  TitleMenu* = cuint(1)
 const
-  title_interactive* = cuint(2)
+  TitleInteractive* = cuint(2)
 type
   enum_log_level* {.size: sizeof(cuint), pure.} = enum
-    LIBVLC_DEBUG = 0, LIBVLC_NOTICE = 2, LIBVLC_WARNING = 3, LIBVLC_ERROR = 4
+    DEBUG = 0, NOTICE = 2, WARNING = 3, ERROR = 4
 type
   enum_meta_t* {.size: sizeof(cuint), pure.} = enum
     Title = 0, Artist = 1, Genre = 2, Copyright = 3, Album = 4, TrackNumber = 5,
@@ -23,76 +23,69 @@ type
     NothingSpecial = 0, Opening = 1, Buffering = 2, Playing = 3, Paused = 4,
     Stopped = 5, Ended = 6, Error = 7
 type
-  enum_track_type_t* {.size: sizeof(cint).} = enum
-    track_unknown = -1, track_audio = 0, track_video = 1, track_text = 2
+  enum_track_type_t* {.size: sizeof(cint), pure.} = enum
+    Unknown = -1, Audio = 0, Video = 1, Text = 2
 type
   enum_video_orient_t* {.size: sizeof(cuint), pure.} = enum
-    top_left = 0, top_right = 1, bottom_left = 2, bottom_right = 3,
-    left_top = 4, left_bottom = 5, right_top = 6, right_bottom = 7
+    TopLeft = 0, TopRight = 1, BottomLeft = 2, BottomRight = 3, LeftTop = 4,
+    LeftBottom = 5, RightTop = 6, RightBottom = 7
 type
   enum_video_projection_t* {.size: sizeof(cuint), pure.} = enum
-    rectangular = 0, equirectangular = 1, cubemap_layout_standard = 256
+    Rectangular = 0, Equirectangular = 1, CubemapLayoutStandard = 256
 type
   enum_media_type_t* {.size: sizeof(cuint), pure.} = enum
-    unknown = 0, file = 1, directory = 2, disc = 3, stream = 4, playlist = 5
+    Unknown = 0, File = 1, Directory = 2, Disc = 3, Stream = 4,
+    Playlist = 5
 type
   enum_media_parse_flag_t* {.size: sizeof(cuint), pure.} = enum
-    media_parse_local = 0, media_parse_network = 1, media_fetch_local = 2,
-    media_fetch_network = 4, media_do_interact = 8
+    MediaParseLocal = 0, MediaParseNetwork = 1, MediaFetchLocal = 2,
+    MediaFetchNetwork = 4, MediaDoInteract = 8
 type
   enum_media_parsed_status_t* {.size: sizeof(cuint), pure.} = enum
-    skipped = 1, failed = 2, timeout = 3, done = 4
+    Skipped = 1, Failed = 2, Timeout = 3, Done = 4
 type
   enum_media_slave_type_t* {.size: sizeof(cuint), pure.} = enum
-    subtitle = 0, audio = 1
+    Subtitle = 0, Audio = 1
 type
   enum_video_marquee_option_t* {.size: sizeof(cuint), pure.} = enum
-    marquee_Enable = 0, marquee_Text = 1, marquee_Color = 2,
-    marquee_Opacity = 3, marquee_Position = 4, marquee_Refresh = 5,
-    marquee_Size = 6, marquee_Timeout = 7, marquee_X = 8, marquee_Y = 9
+    Enable = 0, Text = 1, Color = 2, Opacity = 3, Position = 4, Refresh = 5,
+    Size = 6, Timeout = 7, X = 8, Y = 9
 type
   enum_navigate_mode_t* {.size: sizeof(cuint), pure.} = enum
-    navigate_activate = 0, navigate_up = 1, navigate_down = 2,
-    navigate_left = 3, navigate_right = 4, navigate_popup = 5
+    NavigateActivate = 0, NavigateUp = 1, NavigateDown = 2, NavigateLeft = 3,
+    NavigateRight = 4, NavigatePopup = 5
 type
-  enum_position_t* {.size: sizeof(cint).} = enum
-    disable = -1, center = 0, left = 1, right = 2, top = 3, top_left = 4,
-    top_right = 5, bottom = 6, bottom_left = 7, bottom_right = 8
+  enum_position_t* {.size: sizeof(cint), pure.} = enum
+    Disable = -1, Center = 0, Left = 1, Right = 2, Top = 3, TopLeft = 4,
+    TopRight = 5, Bottom = 6, BottomLeft = 7, BottomRight = 8
 type
   enum_teletext_key_t* {.size: sizeof(cuint), pure.} = enum
-    blue = 6422528, green = 6750208, index = 6881280, red = 7471104,
-    yellow = 7929856
+    Blue = 6422528, Green = 6750208, Index = 6881280, Red = 7471104,
+    Yellow = 7929856
 type
   enum_video_logo_option_t* {.size: sizeof(cuint), pure.} = enum
-    logo_enable = 0, logo_file = 1, logo_x = 2, logo_y = 3, logo_delay = 4,
-    logo_repeat = 5, logo_opacity = 6, logo_position = 7
+    Enable = 0, File = 1, X = 2, Y = 3, Delay = 4, Repeat = 5,
+    Opacity = 6, Position = 7
 type
   enum_video_adjust_option_t* {.size: sizeof(cuint), pure.} = enum
-    adjust_Enable = 0, adjust_Contrast = 1, adjust_Brightness = 2,
-    adjust_Hue = 3, adjust_Saturation = 4, adjust_Gamma = 5
+    Enable = 0, Contrast = 1, Brightness = 2, Hue = 3, Saturation = 4, Gamma = 5
 type
-  enum_audio_output_device_types_t* {.size: sizeof(cint).} = enum
-    AudioOutputDevice_Error = -1, AudioOutputDevice_Mono = 1,
-    AudioOutputDevice_Stereo = 2, AudioOutputDevice_2F2R = 4,
-    AudioOutputDevice_3F2R = 5, AudioOutputDevice_5_1 = 6,
-    AudioOutputDevice_6_1 = 7, AudioOutputDevice_7_1 = 8,
-    AudioOutputDevice_SPDIF = 10
+  enum_audio_output_device_types_t* {.size: sizeof(cint), pure.} = enum
+    OutputError = -1, OutputMono = 1, OutputStereo = 2, Output2F2R = 4,
+    Output3F2R = 5, Output51 = 6, Output61 = 7, Output71 = 8, OutputSPDIF = 10
 type
-  enum_audio_output_channel_t* {.size: sizeof(cint).} = enum
-    AudioChannel_Error = -1, AudioChannel_Stereo = 1, AudioChannel_RStereo = 2,
-    AudioChannel_Left = 3, AudioChannel_Right = 4, AudioChannel_Dolbys = 5
+  enum_audio_output_channel_t* {.size: sizeof(cint), pure.} = enum
+    Error = -1, Stereo = 1, RStereo = 2, Left = 3, Right = 4, Dolbys = 5
 type
   enum_media_player_role* {.size: sizeof(cuint), pure.} = enum
-    role_None = 0, role_Music = 1, role_Video = 2, role_Communication = 3,
-    role_Game = 4, role_Notification = 5, role_Animation = 6,
-    role_Production = 7, role_Accessibility = 8, role_Test_enumval = 9
+    None = 0, Music = 1, Video = 2, Communication = 3, Game = 4,
+    Notification = 5, Animation = 6, Production = 7, Accessibility = 8, Test = 9
 type
   enum_playback_mode_t* {.size: sizeof(cuint), pure.} = enum
-    default = 0, loop = 1, repeat = 2
+    Default = 0, Loop = 1, Repeat = 2
 type
   enum_media_discoverer_category_t* {.size: sizeof(cuint), pure.} = enum
-    media_discoverer_devices = 0, media_discoverer_lan = 1,
-    media_discoverer_podcasts = 2, media_discoverer_localdirs = 3
+    Devices = 0, Lan = 1, Podcasts = 2, Localdirs = 3
 type
   enum_event_e* {.size: sizeof(cuint), pure.} = enum
     MediaMetaChanged = 0, MediaSubItemAdded = 1, MediaDurationChanged = 2,
@@ -127,8 +120,7 @@ type
     VlmMediaInstanceStatusEnd = 1545, VlmMediaInstanceStatusError = 1546
 type
   enum_dialog_question_type* {.size: sizeof(cuint), pure.} = enum
-    LIBVLC_DIALOG_QUESTION_NORMAL = 0, LIBVLC_DIALOG_QUESTION_WARNING = 1,
-    LIBVLC_DIALOG_QUESTION_CRITICAL = 2
+    NORMAL = 0, WARNING = 1, CRITICAL = 2
 type
   struct_media_library_t* = object
 type

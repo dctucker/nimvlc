@@ -1,5 +1,8 @@
 type
-    QuestionType* = enum_dialog_question_type
+    QuestionType* = enum
+        Normal = 0,
+        Warning = 1,
+        Critical = 2
     DialogCallbacks* {.pure, inheritable, bycopy.} = object
         displayError*:    proc(data: pointer, title: string; text: string)
         displayLogin*:    proc(data: pointer, id: DialogId, title: string, text: string, a4: string, a5: bool)
@@ -16,8 +19,8 @@ proc convertDialogCallbacks*(cbs: DialogCallbacks): dialog_cbs =
             cbs.displayError(data, $title, $text),
         pf_display_login:    proc(data: pointer, id: ptr dialog_id, title: cstring, text: cstring, username: cstring, ask_store: bool) {.cdecl.} =
             cbs.displayLogin(data, id, $title, $text, $username, ask_store),
-        pf_display_question: proc(data: pointer, id: ptr dialog_id, title: cstring, text: cstring, qt: QuestionType, cancel: cstring, action1: cstring, action2: cstring) {.cdecl.} =
-            cbs.displayQuestion(data, id, $title, $text, qt, $cancel, $action1, $action2),
+        pf_display_question: proc(data: pointer, id: ptr dialog_id, title: cstring, text: cstring, qt: dialog_question_type, cancel: cstring, action1: cstring, action2: cstring) {.cdecl.} =
+            cbs.displayQuestion(data, id, $title, $text, QuestionType(qt.ord), $cancel, $action1, $action2),
         pf_display_progress: proc(data: pointer, id: ptr dialog_id, title: cstring, text: cstring, indeterminate: bool, pos: cfloat, cancel: cstring) {.cdecl.} =
             cbs.displayProgress(data, id, $title, $text, indeterminate, pos.float, $cancel),
         pf_cancel:           proc(data: pointer, id: ptr dialog_id) {.cdecl.} =
