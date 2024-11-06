@@ -53,6 +53,10 @@ when defined(useFuthark):
             for i in given.items:
                 var o = i.copy()
                 case i["kind"].getStr:
+                of "const":
+                    if i.hasKey("name"):
+                        if i["name"].getStr.endsWith("_H"):
+                            continue
                 of "enum":
                     o["fields"] = % []
                     var prefix = ""

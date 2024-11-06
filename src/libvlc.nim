@@ -510,16 +510,6 @@ type
   compiler_off64_t* = clong  ## Generated based on /usr/include/bits/types.h:153:27
 when 1 is static:
   const
-    VLC_LIBVLC_H* = 1        ## Generated based on /usr/include/vlc/libvlc.h:36:9
-else:
-  let VLC_LIBVLC_H* = 1      ## Generated based on /usr/include/vlc/libvlc.h:36:9
-when 1 is static:
-  const
-    VLC_LIBVLC_RENDERER_DISCOVERER_H* = 1 ## Generated based on /usr/include/vlc/libvlc_renderer_discoverer.h:22:9
-else:
-  let VLC_LIBVLC_RENDERER_DISCOVERER_H* = 1 ## Generated based on /usr/include/vlc/libvlc_renderer_discoverer.h:22:9
-when 1 is static:
-  const
     LIBVLC_RENDERER_CAN_AUDIO* = 1 ## Generated based on /usr/include/vlc/libvlc_renderer_discoverer.h:52:9
 else:
   let LIBVLC_RENDERER_CAN_AUDIO* = 1 ## Generated based on /usr/include/vlc/libvlc_renderer_discoverer.h:52:9
@@ -528,56 +518,6 @@ when 2 is static:
     LIBVLC_RENDERER_CAN_VIDEO* = 2 ## Generated based on /usr/include/vlc/libvlc_renderer_discoverer.h:54:9
 else:
   let LIBVLC_RENDERER_CAN_VIDEO* = 2 ## Generated based on /usr/include/vlc/libvlc_renderer_discoverer.h:54:9
-when 1 is static:
-  const
-    VLC_LIBVLC_MEDIA_H* = 1  ## Generated based on /usr/include/vlc/libvlc_media.h:27:9
-else:
-  let VLC_LIBVLC_MEDIA_H* = 1 ## Generated based on /usr/include/vlc/libvlc_media.h:27:9
-when 1 is static:
-  const
-    VLC_LIBVLC_MEDIA_PLAYER_H* = 1 ## Generated based on /usr/include/vlc/libvlc_media_player.h:27:9
-else:
-  let VLC_LIBVLC_MEDIA_PLAYER_H* = 1 ## Generated based on /usr/include/vlc/libvlc_media_player.h:27:9
-when 1 is static:
-  const
-    LIBVLC_MEDIA_LIST_H* = 1 ## Generated based on /usr/include/vlc/libvlc_media_list.h:25:9
-else:
-  let LIBVLC_MEDIA_LIST_H* = 1 ## Generated based on /usr/include/vlc/libvlc_media_list.h:25:9
-when 1 is static:
-  const
-    LIBVLC_MEDIA_LIST_PLAYER_H* = 1 ## Generated based on /usr/include/vlc/libvlc_media_list_player.h:25:9
-else:
-  let LIBVLC_MEDIA_LIST_PLAYER_H* = 1 ## Generated based on /usr/include/vlc/libvlc_media_list_player.h:25:9
-when 1 is static:
-  const
-    VLC_LIBVLC_MEDIA_LIBRARY_H* = 1 ## Generated based on /usr/include/vlc/libvlc_media_library.h:27:9
-else:
-  let VLC_LIBVLC_MEDIA_LIBRARY_H* = 1 ## Generated based on /usr/include/vlc/libvlc_media_library.h:27:9
-when 1 is static:
-  const
-    VLC_LIBVLC_MEDIA_DISCOVERER_H* = 1 ## Generated based on /usr/include/vlc/libvlc_media_discoverer.h:27:9
-else:
-  let VLC_LIBVLC_MEDIA_DISCOVERER_H* = 1 ## Generated based on /usr/include/vlc/libvlc_media_discoverer.h:27:9
-when 1 is static:
-  const
-    LIBVLC_EVENTS_H* = 1     ## Generated based on /usr/include/vlc/libvlc_events.h:26:9
-else:
-  let LIBVLC_EVENTS_H* = 1   ## Generated based on /usr/include/vlc/libvlc_events.h:26:9
-when 1 is static:
-  const
-    LIBVLC_DIALOG_H* = 1     ## Generated based on /usr/include/vlc/libvlc_dialog.h:22:9
-else:
-  let LIBVLC_DIALOG_H* = 1   ## Generated based on /usr/include/vlc/libvlc_dialog.h:22:9
-when 1 is static:
-  const
-    LIBVLC_VLM_H* = 1        ## Generated based on /usr/include/vlc/libvlc_vlm.h:26:9
-else:
-  let LIBVLC_VLM_H* = 1      ## Generated based on /usr/include/vlc/libvlc_vlm.h:26:9
-when 1 is static:
-  const
-    LIBVLC_DEPRECATED_H* = 1 ## Generated based on /usr/include/vlc/deprecated.h:26:9
-else:
-  let LIBVLC_DEPRECATED_H* = 1 ## Generated based on /usr/include/vlc/deprecated.h:26:9
 proc errmsg*(): cstring {.cdecl, importc: "libvlc_errmsg".}
 proc clearerr*(): void {.cdecl, importc: "libvlc_clearerr".}
 proc vprinterr*(fmt: cstring): cstring {.cdecl, varargs,
