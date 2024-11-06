@@ -132,13 +132,9 @@ type
 type
   struct_renderer_discoverer_t* = object
 type
-  struct_IO_marker* = object
-type
   struct_media_list_player_t* = object
 type
   struct_media_discoverer_t* = object
-type
-  struct_IO_wide_data* = object
 type
   struct_media_player_t* = object
 type
@@ -155,8 +151,6 @@ type
   struct_instance_t* = object
 type
   struct_renderer_item_t* = object
-type
-  struct_IO_codecvt* = object
 type
   instance_t* = struct_instance_t ## Generated based on /usr/include/vlc/libvlc.h:77:34
   time_t* = int64            ## Generated based on /usr/include/vlc/libvlc.h:79:17
@@ -476,38 +470,8 @@ type
     psz_message*: cstring
   log_message_t* = struct_log_message_t ## Generated based on /usr/include/vlc/deprecated.h:356:3
   struct_IO_FILE* {.pure, inheritable, bycopy.} = object
-    internal_flags*: cint    ## Generated based on /usr/include/bits/types/struct_FILE.h:49:8
-    internal_IO_read_ptr*: cstring
-    internal_IO_read_end*: cstring
-    internal_IO_read_base*: cstring
-    internal_IO_write_base*: cstring
-    internal_IO_write_ptr*: cstring
-    internal_IO_write_end*: cstring
-    internal_IO_buf_base*: cstring
-    internal_IO_buf_end*: cstring
-    internal_IO_save_base*: cstring
-    internal_IO_backup_base*: cstring
-    internal_IO_save_end*: cstring
-    internal_markers*: ptr struct_IO_marker
-    internal_chain*: ptr struct_IO_FILE
-    internal_fileno*: cint
-    internal_flags2*: cint
-    internal_old_offset*: compiler_off_t
-    internal_cur_column*: cushort
-    internal_vtable_offset*: cschar
-    internal_shortbuf*: array[1'i64, cschar]
-    internal_lock*: pointer
-    internal_offset*: compiler_off64_t
-    internal_codecvt*: ptr struct_IO_codecvt
-    internal_wide_data*: ptr struct_IO_wide_data
-    internal_freeres_list*: ptr struct_IO_FILE
-    internal_freeres_buf*: pointer
-    internal_prevchain*: ptr ptr struct_IO_FILE
-    internal_mode*: cint
-    internal_unused2*: array[20'i64, cschar]
+  ## Generated based on /usr/include/bits/types/struct_FILE.h:49:8
   compiler_ssize_t* = clong  ## Generated based on /usr/include/bits/types.h:194:27
-  compiler_off_t* = clong    ## Generated based on /usr/include/bits/types.h:152:25
-  compiler_off64_t* = clong  ## Generated based on /usr/include/bits/types.h:153:27
 when 1 is static:
   const
     LIBVLC_RENDERER_CAN_AUDIO* = 1 ## Generated based on /usr/include/vlc/libvlc_renderer_discoverer.h:52:9

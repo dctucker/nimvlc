@@ -82,7 +82,9 @@ when defined(useFuthark):
                         let field = %* {"name": name, "value": value}
                         o["fields"].add(field)
                         #echo $field
-                #of "typedef":
+                of "struct":
+                    if i.hasKey("name") and i["name"].getStr == "struct__IO_FILE":
+                        o["fields"] = %[]
                 #    let ty = i["type"]
                 #    if ty["kind"].getStr == "alias" and ty["value"].getStr.startsWith("enum_"):
                 #        var name = i["name"].getStr
