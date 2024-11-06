@@ -234,17 +234,6 @@ proc `equalizer=`*(mp: MediaPlayer, eq: Equalizer): int = mp.media_player_set_eq
 proc role*(mp: MediaPlayer): media_player_role_t = media_player_role_t(mp.media_player_get_role())
 proc `role=`*(mp: MediaPlayer, role: media_player_role_t): int = mp.media_player_set_role(role.cuint)
 
-proc fps*(mp: MediaPlayer): float = mp.media_player_get_fps()
-proc `agl=`*(mp: MediaPlayer; drawable: uint32) = mp.media_player_set_agl(drawable)
-proc `agl`*(mp: MediaPlayer): uint32 = mp.media_player_get_agl()
-
-proc height*(mp: MediaPlayer): int = mp.video_get_height()
-proc width*(mp: MediaPlayer): int = mp.video_get_width()
-proc titleDescription*(mp: MediaPlayer): TrackDescription = TrackDescription(impl: mp.video_get_title_description())
-proc chapterDescription*(mp: MediaPlayer, title: int): TrackDescription = TrackDescription(impl: mp.video_get_chapter_description(title.cint))
-proc `subtitleFile=`*(mp: MediaPlayer, subtitle: string): int = mp.video_set_subtitle_file(subtitle.cstring)
-proc toggleTeletext*(mp: MediaPlayer) = mp.impl.toggle_teletext()
-
 # audio
 
 proc audio_output_get_device_type*(mp: MediaPlayer): AudioOutputDeviceType = mp.audio_output_get_device_type()

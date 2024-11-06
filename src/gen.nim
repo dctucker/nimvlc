@@ -33,7 +33,7 @@ when defined(useFuthark):
         "vlc/libvlc_events.h"
         "vlc/libvlc_dialog.h"
         "vlc/libvlc_vlm.h"
-        "vlc/deprecated.h"
+        #"vlc/deprecated.h"
         outputPath "src/libvlc-new.nim"
         renameCallback proc(name: string, kind: string, partof = ""): string =
             result = name

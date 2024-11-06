@@ -128,8 +128,6 @@ type
 type
   struct_media_list_t* = object
 type
-  struct_log_iterator_t* = object
-type
   struct_renderer_discoverer_t* = object
 type
   struct_media_list_player_t* = object
@@ -461,14 +459,6 @@ type
     pf_update_progress*: proc (a0: pointer; a1: ptr dialog_id; a2: cfloat;
                                a3: cstring): void {.cdecl.}
   dialog_cbs* = struct_dialog_cbs ## Generated based on /usr/include/vlc/libvlc_dialog.h:155:3
-  log_iterator_t* = struct_log_iterator_t ## Generated based on /usr/include/vlc/deprecated.h:347:38
-  struct_log_message_t* {.pure, inheritable, bycopy.} = object
-    i_severity*: cint        ## Generated based on /usr/include/vlc/deprecated.h:349:16
-    psz_type*: cstring
-    psz_name*: cstring
-    psz_header*: cstring
-    psz_message*: cstring
-  log_message_t* = struct_log_message_t ## Generated based on /usr/include/vlc/deprecated.h:356:3
   struct_IO_FILE* {.pure, inheritable, bycopy.} = object
   ## Generated based on /usr/include/bits/types/struct_FILE.h:49:8
   compiler_ssize_t* = clong  ## Generated based on /usr/include/bits/types.h:194:27
@@ -1102,75 +1092,3 @@ proc vlm_get_media_instance_rate*(p_instance: ptr instance_t; psz_name: cstring;
     importc: "libvlc_vlm_get_media_instance_rate".}
 proc vlm_get_event_manager*(p_instance: ptr instance_t): ptr event_manager_t {.
     cdecl, importc: "libvlc_vlm_get_event_manager".}
-proc media_player_get_fps*(p_mi: ptr media_player_t): cfloat {.cdecl,
-    importc: "libvlc_media_player_get_fps".}
-proc media_player_set_agl*(p_mi: ptr media_player_t; drawable: uint32): void {.
-    cdecl, importc: "libvlc_media_player_set_agl".}
-proc media_player_get_agl*(p_mi: ptr media_player_t): uint32 {.cdecl,
-    importc: "libvlc_media_player_get_agl".}
-proc track_description_release*(p_track_description: ptr track_description_t): void {.
-    cdecl, importc: "libvlc_track_description_release".}
-proc video_get_height*(p_mi: ptr media_player_t): cint {.cdecl,
-    importc: "libvlc_video_get_height".}
-proc video_get_width*(p_mi: ptr media_player_t): cint {.cdecl,
-    importc: "libvlc_video_get_width".}
-proc video_get_title_description*(p_mi: ptr media_player_t): ptr track_description_t {.
-    cdecl, importc: "libvlc_video_get_title_description".}
-proc video_get_chapter_description*(p_mi: ptr media_player_t; i_title: cint): ptr track_description_t {.
-    cdecl, importc: "libvlc_video_get_chapter_description".}
-proc video_set_subtitle_file*(p_mi: ptr media_player_t; psz_subtitle: cstring): cint {.
-    cdecl, importc: "libvlc_video_set_subtitle_file".}
-proc toggle_teletext*(p_mi: ptr media_player_t): void {.cdecl,
-    importc: "libvlc_toggle_teletext".}
-proc audio_output_device_count*(p_instance: ptr instance_t;
-                                psz_audio_output: cstring): cint {.cdecl,
-    importc: "libvlc_audio_output_device_count".}
-proc audio_output_device_longname*(p_instance: ptr instance_t;
-                                   psz_output: cstring; i_device: cint): cstring {.
-    cdecl, importc: "libvlc_audio_output_device_longname".}
-proc audio_output_device_id*(p_instance: ptr instance_t;
-                             psz_audio_output: cstring; i_device: cint): cstring {.
-    cdecl, importc: "libvlc_audio_output_device_id".}
-proc audio_output_get_device_type*(p_mi: ptr media_player_t): cint {.cdecl,
-    importc: "libvlc_audio_output_get_device_type".}
-proc audio_output_set_device_type*(p_mp: ptr media_player_t; device_type: cint): void {.
-    cdecl, importc: "libvlc_audio_output_set_device_type".}
-proc media_parse*(p_md: ptr media_t): void {.cdecl,
-    importc: "libvlc_media_parse".}
-proc media_parse_async*(p_md: ptr media_t): void {.cdecl,
-    importc: "libvlc_media_parse_async".}
-proc media_is_parsed*(p_md: ptr media_t): cint {.cdecl,
-    importc: "libvlc_media_is_parsed".}
-proc media_get_tracks_info*(p_md: ptr media_t;
-                            tracks: ptr ptr media_track_info_t): cint {.cdecl,
-    importc: "libvlc_media_get_tracks_info".}
-proc media_list_add_file_content*(p_ml: ptr media_list_t; psz_uri: cstring): cint {.
-    cdecl, importc: "libvlc_media_list_add_file_content".}
-proc media_discoverer_new_from_name*(p_inst: ptr instance_t; psz_name: cstring): ptr media_discoverer_t {.
-    cdecl, importc: "libvlc_media_discoverer_new_from_name".}
-proc media_discoverer_localized_name*(p_mdis: ptr media_discoverer_t): cstring {.
-    cdecl, importc: "libvlc_media_discoverer_localized_name".}
-proc media_discoverer_event_manager*(p_mdis: ptr media_discoverer_t): ptr event_manager_t {.
-    cdecl, importc: "libvlc_media_discoverer_event_manager".}
-proc instance_wait*(p_instance: ptr instance_t): void {.cdecl,
-    importc: "libvlc_wait".}
-proc get_log_verbosity*(p_instance: ptr instance_t): cuint {.cdecl,
-    importc: "libvlc_get_log_verbosity".}
-proc set_log_verbosity*(p_instance: ptr instance_t; level: cuint): void {.cdecl,
-    importc: "libvlc_set_log_verbosity".}
-proc log_open*(p_instance: ptr instance_t): ptr log_t {.cdecl,
-    importc: "libvlc_log_open".}
-proc log_close*(p_log: ptr log_t): void {.cdecl, importc: "libvlc_log_close".}
-proc log_count*(p_log: ptr log_t): cuint {.cdecl, importc: "libvlc_log_count".}
-proc log_clear*(p_log: ptr log_t): void {.cdecl, importc: "libvlc_log_clear".}
-proc log_get_iterator*(p_log: ptr log_t): ptr log_iterator_t {.cdecl,
-    importc: "libvlc_log_get_iterator".}
-proc log_iterator_free*(p_iter: ptr log_iterator_t): void {.cdecl,
-    importc: "libvlc_log_iterator_free".}
-proc log_iterator_has_next*(p_iter: ptr log_iterator_t): cint {.cdecl,
-    importc: "libvlc_log_iterator_has_next".}
-proc log_iterator_next*(p_iter: ptr log_iterator_t; p_buf: ptr log_message_t): ptr log_message_t {.
-    cdecl, importc: "libvlc_log_iterator_next".}
-proc playlist_play*(p_instance: ptr instance_t; i_id: cint; i_options: cint;
-                    ppsz_options: ptr cstring): void {.cdecl,
-    importc: "libvlc_playlist_play".}
